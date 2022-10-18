@@ -1,8 +1,9 @@
 #pip install flask
-#python -m flask --app project --debug run
+#python project.py
 
 from flask import Flask
 from flask import send_from_directory
+import dbaccess
 
 app = Flask(__name__)
 
@@ -15,4 +16,12 @@ def gethotel():
     return "<p>gethotel</p>"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    db = dbaccess.dataproc()
+    conn = db.create_connection("westunion.db")
+    try:
+        conn.execute("drop table if exists airbnb;")
+        conn.execute("drop table if exists resort;")
+    except Exception as e:
+        print("error in drop query", e)
+    app.run(debug=False)
+
