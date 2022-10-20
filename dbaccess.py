@@ -1,7 +1,6 @@
 
 import sqlite3
 from sqlite3 import Error
-import csv
 
 class dataproc():
     def create_connection(self, path):
