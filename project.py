@@ -15,13 +15,18 @@ def default():
 def gethotel():
     return "<p>gethotel</p>"
 
-if __name__ == '__main__':
-    db = dbaccess.dataproc()
-    conn = db.create_connection("westunion.db")
+@app.route("/reload")
+def reload():
     try:
-        conn.execute("drop table if exists airbnb;")
-        conn.execute("drop table if exists resort;")
+        db = dbaccess.dataproc()
+        db.create_connection("westunion.db")
+        db.execute_query("drop table if exists airbnb;")
+        db.execute_query("drop table if exists resort;")
+        db.close()
     except Exception as e:
         print("error in drop query", e)
+    return "<p>done</p>"
+
+if __name__ == '__main__':
     app.run(debug=False)
 
