@@ -5,6 +5,7 @@ from flask import Flask
 from flask import send_from_directory
 import dbaccess
 import csv
+import json
 
 app = Flask(__name__)
 
@@ -14,7 +15,17 @@ def default():
 
 @app.route("/gethotel")
 def gethotel():
-    return "<p>gethotel</p>"
+    headings = ["id", "address", "lat", "lon", "name", "numberOfGuests", "roomType", "stars", "url"]
+    result = None
+    try:
+        db = dbaccess.dataproc()
+        conn = db.create_connection("westunion.db")
+        curr = conn.execute("select * from airbnb order by id limit 10")
+        result = [dict((x, y) for x, y in zip(headings, row)) for row in curr.fetchall()]
+        db.close()
+    except Exception as e:
+        print("error in loading database:", e)
+    return json.dumps(result)
 
 @app.route("/reload")
 def reload():
