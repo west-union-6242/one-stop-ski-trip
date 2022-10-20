@@ -5,12 +5,28 @@ import csv
 
 class dataproc():
     def create_connection(self, path):
-        connection = None
+        self.connection = None
         try:
-            connection = sqlite3.connect(path)
-            connection.text_factory = str
+            self.connection = sqlite3.connect(path)
+            self.connection.text_factory = str
         except Error as e:
-            print("Error occurred: " + str(e))
-    
-        return connection
+            print("Error:" + str(e))
+        return self.connection
+
+    def execute_query(self, query):
+        try:
+            assert query != "", "Query Blank"
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+            self.connection.commit()
+        except Error as e:
+            print("Error:" + str(e))
+        return None
+
+    def close(self):
+        try:
+            self.connection.close()
+        except Error as e:
+            print("Error:" + str(e))
+        return None
 
