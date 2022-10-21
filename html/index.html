@@ -1,1 +1,33 @@
-<p>Hello World!</p>
+<html>
+    <head>
+        <style>
+            #map {
+                height: 400px;
+                width: 100%;
+            }
+        </style>
+        <script>
+            // Initialize and add the map
+            function initMap() {
+                // The location of Aspen
+                const aspen = { lat: 39.1863, lng: -106.8182 };
+                // The map, centered at Aspen
+                const map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 4,
+                    center: aspen,
+                });
+                // The marker, positioned at Aspen
+                const marker = new google.maps.Marker({
+                    position: aspen,
+                    map: map,
+                });
+            }
+
+            window.initMap = initMap;
+        </script>
+    </head>
+    <body>
+        <div id="map"></div>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsIkSW_j4Ml6Cy_xx5vqepARjEaul4SSM&callback=initMap"></script>
+    </body>
+</html>
