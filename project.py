@@ -8,6 +8,7 @@ from flask import request
 import sqlite3
 from sqlite3 import Error
 
+import math
 import csv
 import json
 import random
@@ -41,10 +42,6 @@ class dataproc():
         return None
 
 
-
-
-
-
 app = Flask(__name__)
 
 @app.route("/")
@@ -58,19 +55,23 @@ def gethotel():
     lon = -73.96732919372586
     limit = 10
     try:
-        lat = float(request.args.get('lat'))
-        lon = float(request.args.get('lon'))
         limit = float(request.args.get('limit'))
         if limit > 100:
             limit = 100 #return no more than 100 max
+        lat = float(request.args.get('lat'))
+        lon = float(request.args.get('lon'))
     except Exception as e:
         print("error process params", e)
     try:
         #print("lat:", lat, "lon:", lon, "limit", limit)
+        sinlat = math.sin(math.radians(lat))
+        coslat = math.cos(math.radians(lat))
+        sinlon = math.sin(math.radians(lon))
+        coslon = math.cos(math.radians(lon))
         headings = ["id", "address", "lat", "lon", "name", "numberOfGuests", "roomType", "stars", "url", "price"]
         db = dataproc()
         conn = db.create_connection("westunion.db")
-        curr = conn.execute("select * from airbnb order by id limit {}".format(limit))
+        curr = conn.execute("select *, ((sinlat * {}) + (coslat * {})*((sinlon * {}) + (coslon * {}))) as dist from airbnb order by dist desc limit {}".format(sinlat, coslat, sinlon, coslon, limit))
         result = [dict((x, y) for x, y in zip(headings, row)) for row in curr.fetchall()]
         db.close()
     except Exception as e:
@@ -84,7 +85,7 @@ def reload():
         db.create_connection("westunion.db")
         db.execute_query("drop table if exists airbnb;")
         db.execute_query("drop table if exists resort;")
-        db.execute_query("create table airbnb (id integer primary key autoincrement, address varchar(256), lat float, lon float, name varchar(64), numberOfGuests int, roomType varchar(16), stars float, url varchar(256), price float);")
+        db.execute_query("create table airbnb (id integer primary key autoincrement, address varchar(256), lat float, lon float, name varchar(64), numberOfGuests int, roomType varchar(16), stars float, url varchar(256), price float, sinlat float, coslat float, sinlon float, coslon float);")
 
         with open("data/hotel/airbnb.csv", encoding = "utf8") as csvfile:
             csvread = csv.reader(csvfile, delimiter=",")
@@ -97,7 +98,9 @@ def reload():
                         if i in {0, 3, 230, 232}:
                             row[i] = row[i].replace("'", "")
                     price = round(random.random() * 800 + 200, 2)
-                    sql = "insert into airbnb (address, lat, lon, name, numberOfGuests, roomType, stars, url, price) values ('{}',{},{},'{}',{},'{}',{},'{}', {});".format(row[0], row[1], row[2], row[3], row[4], row[230], row[231], row[232], price)
+                    lat = float(row[1])
+                    lon = float(row[2])
+                    sql = "insert into airbnb (address, lat, lon, name, numberOfGuests, roomType, stars, url, price, sinlat, coslat, sinlon, coslon) values ('{}',{},{},'{}',{},'{}',{},'{}', {}, {}, {}, {}, {});".format(row[0], lat, lon, row[3], row[4], row[230], row[231], row[232], price, math.sin(math.radians(lat)), math.cos(math.radians(lat)), math.sin(math.radians(lon)), math.cos(math.radians(lon)))
                     db.execute_query(sql)
                 lcount += 1
 
@@ -108,4 +111,5 @@ def reload():
 
 if __name__ == '__main__':
     app.run(debug=False)
+
 
