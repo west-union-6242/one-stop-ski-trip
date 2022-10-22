@@ -73,7 +73,7 @@ def reload():
         db.execute_query("drop table if exists resort;")
         db.execute_query("create table airbnb (id integer primary key autoincrement, address varchar(256), lat float, lon float, name varchar(64), numberOfGuests int, roomType varchar(16), stars float, url varchar(256), price float);")
 
-        with open("data/airbnb.csv", encoding = "utf8") as csvfile:
+        with open("data/hotel/airbnb.csv", encoding = "utf8") as csvfile:
             csvread = csv.reader(csvfile, delimiter=",")
             lcount = 0
             for row in csvread:
