@@ -3,6 +3,7 @@
 
 from flask import Flask
 from flask import send_from_directory
+from flask import request
 
 import sqlite3
 from sqlite3 import Error
@@ -52,16 +53,28 @@ def default():
 
 @app.route("/gethotel")
 def gethotel():
-    headings = ["id", "address", "lat", "lon", "name", "numberOfGuests", "roomType", "stars", "url", "price"]
     result = None
+    lat = 40.78130111899314
+    lon = -73.96732919372586
+    limit = 10
     try:
+        lat = float(request.args.get('lat'))
+        lon = float(request.args.get('lon'))
+        limit = float(request.args.get('limit'))
+        if limit > 100:
+            limit = 100 #return no more than 100 max
+    except Exception as e:
+        print("error process params", e)
+    try:
+        #print("lat:", lat, "lon:", lon, "limit", limit)
+        headings = ["id", "address", "lat", "lon", "name", "numberOfGuests", "roomType", "stars", "url", "price"]
         db = dataproc()
         conn = db.create_connection("westunion.db")
-        curr = conn.execute("select * from airbnb order by id limit 10")
+        curr = conn.execute("select * from airbnb order by id limit {}".format(limit))
         result = [dict((x, y) for x, y in zip(headings, row)) for row in curr.fetchall()]
         db.close()
     except Exception as e:
-        print("error in loading database:", e)
+        print("error in returning hotel json:", e)
     return json.dumps(result)
 
 @app.route("/reload")
