@@ -3,10 +3,46 @@
 
 from flask import Flask
 from flask import send_from_directory
-import dbaccess
+
+import sqlite3
+from sqlite3 import Error
+
 import csv
 import json
 import random
+
+
+class dataproc():
+    def create_connection(self, path):
+        self.connection = None
+        try:
+            self.connection = sqlite3.connect(path)
+            self.connection.text_factory = str
+        except Error as e:
+            print("Error:" + str(e))
+        return self.connection
+
+    def execute_query(self, query):
+        try:
+            assert query != "", "Query Blank"
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+            self.connection.commit()
+        except Error as e:
+            print("Error:" + str(e))
+        return None
+
+    def close(self):
+        try:
+            self.connection.close()
+        except Error as e:
+            print("Error:" + str(e))
+        return None
+
+
+
+
+
 
 app = Flask(__name__)
 
@@ -19,7 +55,7 @@ def gethotel():
     headings = ["id", "address", "lat", "lon", "name", "numberOfGuests", "roomType", "stars", "url", "price"]
     result = None
     try:
-        db = dbaccess.dataproc()
+        db = dataproc()
         conn = db.create_connection("westunion.db")
         curr = conn.execute("select * from airbnb order by id limit 10")
         result = [dict((x, y) for x, y in zip(headings, row)) for row in curr.fetchall()]
@@ -31,7 +67,7 @@ def gethotel():
 @app.route("/reload")
 def reload():
     try:
-        db = dbaccess.dataproc()
+        db = dataproc()
         db.create_connection("westunion.db")
         db.execute_query("drop table if exists airbnb;")
         db.execute_query("drop table if exists resort;")
