@@ -61,7 +61,8 @@ def gethotel():
         lat = float(request.args.get('lat'))
         lon = float(request.args.get('lon'))
     except Exception as e:
-        print("error process params", e)
+        #print("error process params:", e)
+        pass
     try:
         #print("lat:", lat, "lon:", lon, "limit", limit)
         sinlat = math.sin(math.radians(lat))
