@@ -12,7 +12,7 @@ import math
 import csv
 import json
 import random
-
+import os
 
 class dataproc():
     def create_connection(self, path):
@@ -87,22 +87,26 @@ def reload():
         db.execute_query("drop table if exists resort;")
         db.execute_query("create table airbnb (id integer primary key autoincrement, address varchar(256), lat float, lon float, name varchar(64), numberOfGuests int, roomType varchar(16), stars float, url varchar(256), price float, sinlat float, coslat float, sinlon float, coslon float);")
 
-        with open("data/hotel/airbnb.csv", encoding = "utf8") as csvfile:
-            csvread = csv.reader(csvfile, delimiter=",")
-            lcount = 0
-            for row in csvread:
-                if lcount > 0:
-                    for i in range(len(row)):
-                        if row[i] == "" and i not in {0, 3, 230, 232}:
-                            row[i] = 0
-                        if i in {0, 3, 230, 232}:
-                            row[i] = row[i].replace("'", "")
-                    price = round(random.random() * 800 + 200, 2)
-                    lat = float(row[1])
-                    lon = float(row[2])
-                    sql = "insert into airbnb (address, lat, lon, name, numberOfGuests, roomType, stars, url, price, sinlat, coslat, sinlon, coslon) values ('{}',{},{},'{}',{},'{}',{},'{}', {}, {}, {}, {}, {});".format(row[0], lat, lon, row[3], row[4], row[230], row[231], row[232], price, math.sin(math.radians(lat)), math.cos(math.radians(lat)), math.sin(math.radians(lon)), math.cos(math.radians(lon)))
-                    db.execute_query(sql)
-                lcount += 1
+        folder = "data/hotel"
+        for fn in os.listdir(folder):
+            f = os.path.join(folder, fn)
+            if os.path.isfile(f):
+                with open(f, encoding = "utf8") as csvfile:
+                    csvread = csv.reader(csvfile, delimiter=",")
+                    lcount = 0
+                    for row in csvread:
+                        if lcount > 0:
+                            for i in range(len(row)):
+                                if row[i] == "" and i not in {0, 3, 5, 7}:
+                                    row[i] = 0
+                                if i in {0, 3, 5, 7}:
+                                    row[i] = row[i].replace("'", "")
+                            price = round(random.random() * 800 + 200, 2)
+                            lat = float(row[1])
+                            lon = float(row[2])
+                            sql = "insert into airbnb (address, lat, lon, name, numberOfGuests, roomType, stars, url, price, sinlat, coslat, sinlon, coslon) values ('{}',{},{},'{}',{},'{}',{},'{}', {}, {}, {}, {}, {});".format(row[0], lat, lon, row[3], row[4], row[5], row[6], row[7], price, math.sin(math.radians(lat)), math.cos(math.radians(lat)), math.sin(math.radians(lon)), math.cos(math.radians(lon)))
+                            db.execute_query(sql)
+                        lcount += 1
 
         db.close()
     except Exception as e:
