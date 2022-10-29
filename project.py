@@ -107,7 +107,6 @@ def reload():
                             sql = "insert into airbnb (address, lat, lon, name, numberOfGuests, roomType, stars, url, price, sinlat, coslat, sinlon, coslon) values ('{}',{},{},'{}',{},'{}',{},'{}', {}, {}, {}, {}, {});".format(row[0], lat, lon, row[3], row[4], row[5], row[6], row[7], price, math.sin(math.radians(lat)), math.cos(math.radians(lat)), math.sin(math.radians(lon)), math.cos(math.radians(lon)))
                             db.execute_query(sql)
                         lcount += 1
-                csvfile.close()
 
         db.close()
     except Exception as e:
