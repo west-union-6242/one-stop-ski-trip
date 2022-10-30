@@ -48,6 +48,22 @@ app = Flask(__name__)
 def default():
     return send_from_directory("html", "index.html")
 
+
+@app.route('/resort-preference')
+def resort_preference():
+    return send_from_directory("html", 'resort-preference.html')
+
+
+@app.route('/resort-recommend')
+def resort_recommend():
+    difficulty = request.args.get('difficulty')
+    goal = request.args.get('goal')
+    fav_resort = request.args.get('fav_resort')
+    print('form data:', difficulty, goal, fav_resort)
+
+    return send_from_directory("html", "resort-recommend.html")
+
+
 @app.route("/gethotel")
 def gethotel():
     result = None
@@ -56,6 +72,7 @@ def gethotel():
     limit = 10
     try:
         limit = float(request.args.get('limit'))
+        print("limit", limit)
         if limit > 100:
             limit = 100 #return no more than 100 max
         lat = float(request.args.get('lat'))
