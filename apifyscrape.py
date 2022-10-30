@@ -15,7 +15,7 @@ def apify_download(token, taskid, addr):
     csv = dataset_client.download_items(item_format="csv")
     fname = "dataset_airbnb-scraper-task_"
     fname += str(datetime.now()).replace(" ", "_").replace(":", "-").replace(".", "-") + "_"
-    fname += addr.lower().replace(",", "_").replace(" ", "_") + ".csv"
+    fname += addr.lower().replace(",", "_").replace(" ", "") + ".csv"
     with open(fname, "wb") as csvfile:
         csvfile.write(csv)
 
