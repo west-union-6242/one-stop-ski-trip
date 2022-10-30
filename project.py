@@ -13,6 +13,7 @@ import csv
 import json
 import random
 import os
+from logic.resort_recommender import resort_recommender
 
 class dataproc():
     def create_connection(self, path):
@@ -60,6 +61,7 @@ def resort_recommend():
     goal = request.args.get('goal')
     fav_resort = request.args.get('fav_resort')
     print('form data:', difficulty, goal, fav_resort)
+    resort_recommender(difficulty, goal, fav_resort)
 
     return send_from_directory("html", "resort-recommend.html")
 
