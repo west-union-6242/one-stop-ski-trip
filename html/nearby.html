@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <style>
+            #map {
+                height: 400px;
+                width: 100%;
+            }
+        </style>
+        <script>
+            // Initialize and add the map
+            function initMap() {
+                // The location of Aspen
+                const aspen = { lat: 39.1863, lng: -106.8182 };
+                // The map, centered at Aspen
+                const map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 4,
+                    center: aspen,
+                });
+
+                var endpoint = 'gethotel';
+                
+                var xhr = new XMLHttpRequest();
+
+                xhr.onreadystatechange = function () {
+                    if (this.readyState != 4) return;
+
+                    if (this.status == 200) {
+                        var data = JSON.parse(this.responseText);
+                        //console.log(data)
+                        
+                        data.forEach(d => new google.maps.Marker({
+                            position: { lat: d['lat'], lng: d['lon'] },
+                            map: map,
+                        }))
+                    }
+                };
+
+                xhr.open('GET', endpoint, true);
+                xhr.send();
+                window.initMap = initMap;
+            } 
+        </script>
+    </head>
+    <body>
+        <div id="map"></div>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsIkSW_j4Ml6Cy_xx5vqepARjEaul4SSM&callback=initMap"></script>
+    </body>
+</html>

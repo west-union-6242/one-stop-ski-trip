@@ -48,6 +48,10 @@ app = Flask(__name__)
 def default():
     return send_from_directory("html", "index.html")
 
+@app.route("/nearby")
+def get_nearby_from_resort():
+    return send_from_directory("html", "nearby.html")
+
 @app.route("/gethotel")
 def gethotel():
     result = None
