@@ -102,6 +102,12 @@ def gethotel():
         print("error in returning hotel json:", e)
     return json.dumps(result)
 
+@app.route("/getstatesgeo")
+def getstatesgeo():
+    file = open("data/geo_data/states.json", encoding="utf8")
+    data = json.load(file)
+    return json.dumps(data)  
+
 @app.route("/reload")
 def reload():
     try:
