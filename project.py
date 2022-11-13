@@ -45,6 +45,10 @@ class dataproc():
 
 app = Flask(__name__)
 
+@app.route('/public/<path:path>')
+def send_public(path):
+    return send_from_directory('public', path)
+
 @app.route("/")
 def default():
     return send_from_directory("html", "index.html")
