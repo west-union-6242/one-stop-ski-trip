@@ -12,6 +12,25 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js" integrity="sha512-wNH6xsp2n8CfB91nrBtfc4sfLwYPBMjSWVUwQOp60AYYXH6i8yCwuKFZ4rgK2i6pQek/b+bSyR7b01/922IBzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://unpkg.com/topojson@3"></script>
         <script>
+
+            function fetchAndProcessData(endpoint, callback) {
+                var xhr = new XMLHttpRequest();
+
+                xhr.onreadystatechange = function () {
+                    if (this.readyState != 4) return;
+
+                    if (this.status == 200) {
+                        var data = JSON.parse(this.responseText);
+                        //console.log(data)
+                        
+                        callback(data)
+                    }
+                };
+
+                xhr.open('GET', endpoint, true);
+                xhr.send();
+            }
+
             // Initialize and add the map
             function initMap() {
                 // The location of Aspen
@@ -23,25 +42,14 @@
                 });
 
                 var endpoint = 'gethotel';
-                
-                var xhr = new XMLHttpRequest();
 
-                xhr.onreadystatechange = function () {
-                    if (this.readyState != 4) return;
+                fetchAndProcessData(endpoint, function(data) {
+                    data.forEach(d => new google.maps.Marker({
+                        position: { lat: d['lat'], lng: d['lon'] },
+                        map: map,
+                    }))
+                })
 
-                    if (this.status == 200) {
-                        var data = JSON.parse(this.responseText);
-                        //console.log(data)
-                        
-                        data.forEach(d => new google.maps.Marker({
-                            position: { lat: d['lat'], lng: d['lon'] },
-                            map: map,
-                        }))
-                    }
-                };
-
-                xhr.open('GET', endpoint, true);
-                xhr.send();
                 window.initMap = initMap;
             } 
         </script>
@@ -83,20 +91,8 @@
             var path = d3.geoPath().projection(projection);
 
             var endpoint = 'getstatesgeo';
-            var xhr = new XMLHttpRequest();
 
-            xhr.onreadystatechange = function () {
-                if (this.readyState != 4) return;
-
-                if (this.status == 200) {
-                    var data = JSON.parse(this.responseText);
-                    
-                    createMap(data)
-                }
-            };
-
-            xhr.open('GET', endpoint, true);
-            xhr.send();
+            fetchAndProcessData(endpoint, createMap)
 
             function createMap(states) {
                 svg_map.selectAll("path")
@@ -105,9 +101,11 @@
                   .append("path")
                   .attr("class","states")
                   .attr("d", path)
+                  .style("stroke", "black")
+                  .style("fill", "white")
 
-                  d3.select("#map")
-                    .style("display", "none")
+                d3.select("#map")
+                  .style("display", "none")
             }
         </script>
         

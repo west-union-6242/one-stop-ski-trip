@@ -31,9 +31,56 @@
 				fill: blue;
 			}
 
+            #gmap {
+                height: 600px;
+                width: 800px;
+            }
 		</style>
+        <script>
+            var gMap;
+            var markers = [];
+
+            function addMarker(loc) {
+                const pos = new google.maps.LatLng(loc.lat, loc.lon);
+                const marker = new google.maps.Marker({
+                    pos,
+                    gMap,
+                });
+
+                markers.push(marker);
+            }
+
+            // Deletes all markers in the array by removing references to them.
+            function deleteMarkers() {
+                for (let i = 0; i < markers.length; i++) {
+                    markers[i].setMap(null);
+                }
+                markers = [];
+            }
+
+            // Initialize and add the Google map, centered on the resort
+            function initMap() {
+                // Center on geographic center of US
+                const pos = new google.maps.LatLng(39.8283, -98.5795);
+                gMap = new google.maps.Map(document.getElementById("gmap"), {
+                    zoom: 4,
+                    center: pos,
+                });
+
+                window.initMap = initMap;
+            }
+
+            function centerGMapOnResort(resort)
+            {
+                const pos = new google.maps.LatLng(resort.lat, resort.lon);
+                gMap.setCenter(pos);
+                gMap.setZoom(10);
+            }
+        </script>
 	</head>
 	<body>
+        <div id="map"></div>
+        <div id="gmap"></div>
 		<script type="text/javascript">
 
 			//Width and height
@@ -57,9 +104,7 @@
 			var formatAsThousands = d3.format(",");  //e.g. converts 123456 to "123,456"
 
 			//Create SVG element
-			var svg = d3.select("body")
-						.append("div")
-						.style("text-align", "center")
+			var svg = d3.select("#map")
 						.append("svg")
 						.attr("width", w)
 						.attr("height", h);
@@ -93,6 +138,37 @@
 					});
 
 			}
+
+            var fetchAndProcessData = function(endpoint, callback) {
+                var xhr = new XMLHttpRequest();
+
+                xhr.onreadystatechange = function () {
+                    if (this.readyState != 4) return;
+
+                    if (this.status == 200) {
+                        var data = JSON.parse(this.responseText);
+                        //console.log(data)
+                        
+                        callback(data)
+                    }
+                };
+
+                xhr.open('GET', endpoint, true);
+                xhr.send();
+            }
+
+            var handleResortClick = function(resort, limit=100) {
+                var endpoint = 'gethotel?limit=' + limit + '&lat=' + resort.lat + '&lon=' + resort.lon
+                fetchAndProcessData(endpoint, function(data) {
+                    //console.log(data)
+
+                    // Visualize the hotel data
+                })
+                deleteMarkers()
+                centerGMapOnResort(resort)
+                addMarker(resort)
+                console.log(markers)
+            }
 
 			//Then define the zoom behavior
 			var zoom = d3.zoom()
@@ -171,12 +247,22 @@
 					   			//If value is undefined…
 						   		return "#ccc";
 					   		}
-					   });
+					   })
+                       .style('stroke-width', 0.1)
+                       .style('stroke', 'white')
+                       .on('mouseover', function(d) {
+                            d3.select(this).style('stroke-width', 1)
+                                           .style('stroke', 'black')
+                       })
+                       .on('mouseout', function(d) {
+                            d3.select(this).style('stroke-width', 0.1)
+                                           .style('stroke', 'white')
+                       })
 
-					//Load in cities data
-					d3.csv("public/us-cities.csv", function(data) {
-						
-						map.selectAll("circle")
+                    var endpoint = 'get-resort-ranking-data';
+                    
+                    fetchAndProcessData(endpoint, function(data) {
+                        map.selectAll("circle")
 						   .data(data)
 						   .enter()
 						   .append("circle")
@@ -187,25 +273,34 @@
 							   return projection([d.lon, d.lat])[1];
 						   })
 						   .attr("r", function(d) {
-								return Math.sqrt(parseInt(d.population) * 0.00004);
+                                // The recommendedness of the resort (placeholder/random data for now)
+							   return d.recommendation_level / 2;
 						   })
 						   .style("fill", "yellow")
 						   .style("stroke", "gray")
 						   .style("stroke-width", 0.25)
 						   .style("opacity", 0.75)
+                           .on('mouseover', function(d) {
+                                d3.select(this).style('stroke-width', 1)
+                                               .style('stroke', 'black')
+                            })
+                           .on('mouseout', function(d) {
+                                d3.select(this).style('stroke-width', 0.25)
+                                               .style('stroke', 'gray')
+                           })
+                           .on('click', function(d) {
+                               handleResortClick(d)
+                           })
 						   .append("title")			//Simple tooltip
 						   .text(function(d) {
-								return d.place + ": Pop. " + formatAsThousands(d.population);
+								return d.resort_name + ": Recommendation rank " + d.recommendation_level;
 						   });
 						
 						createPanButtons();
 						createZoomButtons();
-
-					});
-
-			
+                    })
+                    
 				});
-			
 			});
 			
 			//Create panning buttons
@@ -389,5 +484,6 @@
 			};
 
 		</script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsIkSW_j4Ml6Cy_xx5vqepARjEaul4SSM&callback=initMap"></script>
 	</body>
 </html>
