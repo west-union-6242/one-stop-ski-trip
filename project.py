@@ -2,7 +2,7 @@
 #python project.py
 
 from flask import Flask
-from flask import send_from_directory
+from flask import send_from_directory, render_template, jsonify
 from flask import request
 
 import sqlite3
@@ -74,18 +74,29 @@ def default():
 
 @app.route('/resort-preference')
 def resort_preference():
-    return send_from_directory("html", 'resort-preference.html')
+    conn = sqlite3.connect('westunion.db')
+    curr = conn.execute(
+        "select resort_name from resorts")
+    resort_names = curr.fetchall()
+    resort_names = list(map(lambda resort: resort[0], resort_names))
+    return render_template('resort-preference.html', resort_names=resort_names)
 
 
-@app.route('/resort-recommend')
-def resort_recommend():
+@app.route('/get-resort-recommendations')
+def get_resort_recommend():
     difficulty = request.args.get('difficulty')
     goal = request.args.get('goal')
     fav_resort = request.args.get('fav_resort')
     print('form data:', difficulty, goal, fav_resort)
-    resort_recommender(difficulty, goal, fav_resort)
+    resorts = resort_recommender(difficulty, goal, fav_resort)
+    print('recommended resorts:', resorts)
 
-    return send_from_directory("html", "resort-recommend.html")
+    return jsonify(resorts)
+
+
+@app.route('/resort-recommendations')
+def resort_recommendations():
+    return render_template('resort-recommendations.html')
 
 
 @app.route("/nearby")
