@@ -40,44 +40,33 @@
                 width: 800px;
             }
 		</style>
-        <script type="text/javascript">
+        <script>
             var gMap;
-            var gMapMarkers = new Array()
-            console.log(gMapMarkers)
-            var testArr = []
-            console.log(testArr)
-            function addGMapMarker(lat, lon) {
-                console.log("in addMarkers")
-                console.log("lat=" + lat)
-                console.log("lon=" + lon)
-                console.log(gMapMarkers)
-                console.log(testArr)
-                console.log(gMapMarkers.length)
-                const pos = new google.maps.LatLng(lat, lon);
+            var gMapMarkers = []
+            function addGMapMarker(pos, color="red") {
                 const marker = new google.maps.Marker({
-                    pos,
-                    gMap
+                    position: pos,
+                    map: gMap
                 });
 
-                gMapMarkers.push(marker) 
-                gMapMarkers[0].setMap(gMap)
-                console.log("finish addMarkers\nmarkers=")
-                console.log(gMapMarkers)
-                console.log(gMapMarkers.length)
+                markerColors = {
+                    'red': 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                    'blue': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                    'green': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                }
+
+                marker.setIcon(markerColors[color])
+                gMapMarkers.push(marker)
             }
 
             // Deletes all markers in the array by removing references to them.
             function deleteMarkers() {
-                console.log("in deleteMarkers")
                 for (let i = 0; i < gMapMarkers.length; i++) {
                     gMapMarkers[i].setMap(null);
                 }
                 while(gMapMarkers.length > 0) {
                     gMapMarkers.pop();
                 }
-                console.log("finish deleteMarkers\nmarkers=")
-                console.log(gMapMarkers)
-
             }
 
             // Initialize and add the Google map, centered on geographic center of US
@@ -89,9 +78,9 @@
                 gMap = new google.maps.Map(document.getElementById("gmap"), {
                     zoom: 4,
                     center: pos,
-                });
+                })
 
-                addGMapMarker(lat, lon)
+                addGMapMarker(pos, "blue")
 
                 window.initMap = initMap;
             }
@@ -253,15 +242,15 @@
                         .attr("d", path)
                         .style("fill", function(d) {
                                 //Get data value
-                                var value = d.properties.value;
+                                /*var value = d.properties.value;
                                 
                                 if (value) {
                                     //If value exists…
                                     return color(value);
-                                } else {
-                                    //If value is undefined…
-                                    return "#ccc";
-                                }
+                                }*/
+
+                                // Will need to think of something interesting to color it besides grey
+                                return "#ccc";
                         })
                         .style('stroke-width', 0.1)
                         .style('stroke', 'black')
@@ -301,8 +290,7 @@
                        .on('click', function(d) {
                            deleteMarkers()
                            centerGMapOnResort(d)
-                           addGMapMarker(d.lat, d.lon)
-                           console.log(gMapMarkers)
+                           addGMapMarker(new google.maps.LatLng(d.lat, d.lon), "green")
                        })
                        .append("title")			//Simple tooltip
                        .text(function(d) {
