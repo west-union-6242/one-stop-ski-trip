@@ -64,8 +64,8 @@ def get_resort_ranking_data():
             row['recommendation_level'] = random.randrange(10) + 1
             data.append(row)
 
-    # Return only rankings above 8
-    return json.dumps([d for d in data if d['recommendation_level'] > 8])
+    # Return 5 random resorts, only rankings above 8
+    return json.dumps(random.sample([d for d in data if d['recommendation_level'] > 8], 5))
 
 @app.route("/")
 def default():

@@ -3,7 +3,11 @@
 	<head>
 		<meta charset="utf-8">
 		<title>United States Ski Resort Visualization</title>
-		<script type="text/javascript" src="public/d3.js"></script>
+		<script type="text/javascript" src="public/d3.v5.min.js"></script>
+        <script type="text/javascript" src="public/topojson.v2.min.js"></script>
+        <script type="text/javascript" src="public/d3-geo-projection.v2.min.js"></script>
+        <script type="text/javascript" src="public/d3-legend.min.js"></script>
+        <script type="text/javascript" src="public/topojson.v2.min.js"></script>
 		<style type="text/css">
 			
 			.pan rect,
@@ -36,36 +40,58 @@
                 width: 800px;
             }
 		</style>
-        <script>
+        <script type="text/javascript">
             var gMap;
-            var markers = [];
-
-            function addMarker(loc) {
-                const pos = new google.maps.LatLng(loc.lat, loc.lon);
+            var gMapMarkers = new Array()
+            console.log(gMapMarkers)
+            var testArr = []
+            console.log(testArr)
+            function addGMapMarker(lat, lon) {
+                console.log("in addMarkers")
+                console.log("lat=" + lat)
+                console.log("lon=" + lon)
+                console.log(gMapMarkers)
+                console.log(testArr)
+                console.log(gMapMarkers.length)
+                const pos = new google.maps.LatLng(lat, lon);
                 const marker = new google.maps.Marker({
                     pos,
-                    gMap,
+                    gMap
                 });
 
-                markers.push(marker);
+                gMapMarkers.push(marker) 
+                gMapMarkers[0].setMap(gMap)
+                console.log("finish addMarkers\nmarkers=")
+                console.log(gMapMarkers)
+                console.log(gMapMarkers.length)
             }
 
             // Deletes all markers in the array by removing references to them.
             function deleteMarkers() {
-                for (let i = 0; i < markers.length; i++) {
-                    markers[i].setMap(null);
+                console.log("in deleteMarkers")
+                for (let i = 0; i < gMapMarkers.length; i++) {
+                    gMapMarkers[i].setMap(null);
                 }
-                markers = [];
+                while(gMapMarkers.length > 0) {
+                    gMapMarkers.pop();
+                }
+                console.log("finish deleteMarkers\nmarkers=")
+                console.log(gMapMarkers)
+
             }
 
-            // Initialize and add the Google map, centered on the resort
+            // Initialize and add the Google map, centered on geographic center of US
             function initMap() {
                 // Center on geographic center of US
-                const pos = new google.maps.LatLng(39.8283, -98.5795);
+                var lat = 39.8283
+                var lon = -98.5795
+                const pos = new google.maps.LatLng(lat, lon);
                 gMap = new google.maps.Map(document.getElementById("gmap"), {
                     zoom: 4,
                     center: pos,
                 });
+
+                addGMapMarker(lat, lon)
 
                 window.initMap = initMap;
             }
@@ -100,6 +126,8 @@
 								.range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
 								//Colors taken from colorbrewer.js, included in the D3 download
 
+            var quantile = d3.scaleQuantile()
+                             .range(["#ffffcc", "#a1dab4", "#41b6c4", "#225ea8"])
 			//Number formatting for population values
 			var formatAsThousands = d3.format(",");  //e.g. converts 123456 to "123,456"
 
@@ -156,7 +184,7 @@
                 xhr.open('GET', endpoint, true);
                 xhr.send();
             }
-
+/*
             var handleResortClick = function(resort, limit=100) {
                 var endpoint = 'gethotel?limit=' + limit + '&lat=' + resort.lat + '&lon=' + resort.lon
                 fetchAndProcessData(endpoint, function(data) {
@@ -166,10 +194,10 @@
                 })
                 deleteMarkers()
                 centerGMapOnResort(resort)
-                addMarker(resort)
-                console.log(markers)
+                addGMapMarker(resort.lat, resort.lon)
+                console.log(gMapMarkers)
             }
-
+*/
 			//Then define the zoom behavior
 			var zoom = d3.zoom()
 						 .on("zoom", zooming);
@@ -194,18 +222,110 @@
 				.attr("height", h)
 				.attr("opacity", 0);
 
+            Promise.all([
+                            d3.json("public/us-states.json"),
+                            d3.json("/get-resort-ranking-data"),
+                        ])
+                    .then(function(values) {
+
+                //console.log("values:", values)
+                statesGeoData = values[0]
+                resortData = values[1]
+
+                // Build list of resorts to get hotels around based on resorts received
+                resortRequests = []
+                resortData.forEach(d => {
+                    request = d3.json('/gethotel?lat=' + d.lat + '&lon=' + d.lon + '&limit=100')
+                    resortRequests.push(request)
+                })
+
+                Promise.all(resortRequests).then(function(resortRequestData) {
+                    /*
+                    quantile.domain([
+                        d3.min(data, function(d) { return d.value; }), 
+                        d3.max(data, function(d) { return d.value; })
+                    ]);*/
+                    
+                    map.selectAll("path")
+                        .data(statesGeoData.features)
+                        .enter()
+                        .append("path")
+                        .attr("d", path)
+                        .style("fill", function(d) {
+                                //Get data value
+                                var value = d.properties.value;
+                                
+                                if (value) {
+                                    //If value exists…
+                                    return color(value);
+                                } else {
+                                    //If value is undefined…
+                                    return "#ccc";
+                                }
+                        })
+                        .style('stroke-width', 0.1)
+                        .style('stroke', 'black')
+                        .on('mouseover', function(d) {
+                                d3.select(this).style('stroke-width', 1)
+                        })
+                        .on('mouseout', function(d) {
+                                d3.select(this).style('stroke-width', 0.1)
+                        })
+
+                    map.selectAll("circle")
+                       .data(resortData)
+                       .enter()
+                       .append("circle")
+                       .attr("cx", function(d) {
+                            return projection([d.lon, d.lat])[0];
+                       })
+                       .attr("cy", function(d) {
+                            return projection([d.lon, d.lat])[1];
+                       })
+                       .attr("r", function(d) {
+                            // The recommendedness of the resort (placeholder/random data for now)
+                            return d.recommendation_level;
+                       })
+                       .style("fill", "yellow")
+                       .style("stroke", "gray")
+                       .style("stroke-width", 0.25)
+                       .style("opacity", 0.75)
+                       .on('mouseover', function(d) {
+                            d3.select(this).style('stroke-width', 1)
+                                           .style('stroke', 'black')
+                       })
+                       .on('mouseout', function(d) {
+                            d3.select(this).style('stroke-width', 0.25)
+                                           .style('stroke', 'gray')
+                       })
+                       .on('click', function(d) {
+                           deleteMarkers()
+                           centerGMapOnResort(d)
+                           addGMapMarker(d.lat, d.lon)
+                           console.log(gMapMarkers)
+                       })
+                       .append("title")			//Simple tooltip
+                       .text(function(d) {
+                            return d.resort_name + ": Recommendation rank " + d.recommendation_level;
+                       });
+                    
+                    createPanButtons();
+                    createZoomButtons();
+                })
+            })
+
+            
 			//Load in agriculture data
-			d3.csv("public/us-ag-productivity.csv", function(data) {
+/*			d3.csv("public/us-ag-productivity.csv", function(data) {
 
+                console.log(data)
 				//Set input domain for color scale
-				color.domain([
-					d3.min(data, function(d) { return d.value; }), 
-					d3.max(data, function(d) { return d.value; })
-				]);
-
+				
+                
+                console.log("here")
 				//Load in GeoJSON data
 				d3.json("public/us-states.json", function(json) {
-
+                    console.log(json)
 					//Merge the ag. data and GeoJSON
 					//Loop through once for each ag. data value
 					for (var i = 0; i < data.length; i++) {
@@ -230,79 +350,7 @@
 						}		
 					}
 
-					//Bind data and create one path per GeoJSON feature
-					map.selectAll("path")
-					   .data(json.features)
-					   .enter()
-					   .append("path")
-					   .attr("d", path)
-					   .style("fill", function(d) {
-					   		//Get data value
-					   		var value = d.properties.value;
-					   		
-					   		if (value) {
-					   			//If value exists…
-						   		return color(value);
-					   		} else {
-					   			//If value is undefined…
-						   		return "#ccc";
-					   		}
-					   })
-                       .style('stroke-width', 0.1)
-                       .style('stroke', 'white')
-                       .on('mouseover', function(d) {
-                            d3.select(this).style('stroke-width', 1)
-                                           .style('stroke', 'black')
-                       })
-                       .on('mouseout', function(d) {
-                            d3.select(this).style('stroke-width', 0.1)
-                                           .style('stroke', 'white')
-                       })
-
-                    var endpoint = 'get-resort-ranking-data';
-                    
-                    fetchAndProcessData(endpoint, function(data) {
-                        map.selectAll("circle")
-						   .data(data)
-						   .enter()
-						   .append("circle")
-						   .attr("cx", function(d) {
-							   return projection([d.lon, d.lat])[0];
-						   })
-						   .attr("cy", function(d) {
-							   return projection([d.lon, d.lat])[1];
-						   })
-						   .attr("r", function(d) {
-                                // The recommendedness of the resort (placeholder/random data for now)
-							   return d.recommendation_level / 2;
-						   })
-						   .style("fill", "yellow")
-						   .style("stroke", "gray")
-						   .style("stroke-width", 0.25)
-						   .style("opacity", 0.75)
-                           .on('mouseover', function(d) {
-                                d3.select(this).style('stroke-width', 1)
-                                               .style('stroke', 'black')
-                            })
-                           .on('mouseout', function(d) {
-                                d3.select(this).style('stroke-width', 0.25)
-                                               .style('stroke', 'gray')
-                           })
-                           .on('click', function(d) {
-                               handleResortClick(d)
-                           })
-						   .append("title")			//Simple tooltip
-						   .text(function(d) {
-								return d.resort_name + ": Recommendation rank " + d.recommendation_level;
-						   });
-						
-						createPanButtons();
-						createZoomButtons();
-                    })
-                    
-				});
-			});
-			
+*/
 			//Create panning buttons
 			var createPanButtons = function() {
 
