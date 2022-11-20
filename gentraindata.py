@@ -47,10 +47,10 @@ for fn in os.listdir(folder):
                             idx = mystr.index("night")
                             print("found night")
                         except Exception as ex:
-                            print("notfound night")
+                            print("notfound night:", ex)
                     row.append(mystr) #indent
                     with open("trainingdata.csv", "a") as ofile:
-                        csvwrite = csv.writer(ofile, delimiter=",", quoting=csv.QUOTE_MINIMAL)
+                        csvwrite = csv.writer(ofile, delimiter=",", quotechar="\"", lineterminator="\n", quoting=csv.QUOTE_ALL)
                         csvwrite.writerow(row)
                 except Exception as e:
                     pass
