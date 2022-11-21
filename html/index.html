@@ -42,30 +42,39 @@
 		</style>
         <script>
             var gMap;
-            var gMapMarkers = []
-            function addGMapMarker(pos, color="red") {
+            var resortMarkers = []
+            var lodgingMarkers = []
+
+            markerColors = {
+                'blue': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                'green': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+            }
+
+            function addGMapMarker(pos, markerArr, color=null) {
                 const marker = new google.maps.Marker({
                     position: pos,
                     map: gMap
                 });
 
-                markerColors = {
-                    'red': 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                    'blue': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                    'green': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                if(color && color in markerColors) {
+                    marker.setIcon(markerColors[color])
                 }
+                markerArr.push(marker)
+            }
 
-                marker.setIcon(markerColors[color])
-                gMapMarkers.push(marker)
+            function addAllGmapMarkers(data, markerArr, color=null) {
+                data.forEach(d => {
+                    addGMapMarker(new google.maps.LatLng(d.lat, d.lon), markerArr, color)
+                })
             }
 
             // Deletes all markers in the array by removing references to them.
-            function deleteMarkers() {
-                for (let i = 0; i < gMapMarkers.length; i++) {
-                    gMapMarkers[i].setMap(null);
+            function deleteMarkers(markerArr) {
+                for (let i = 0; i < markerArr.length; i++) {
+                    markerArr[i].setMap(null);
                 }
-                while(gMapMarkers.length > 0) {
-                    gMapMarkers.pop();
+                while(markerArr.length > 0) {
+                    markerArr.pop();
                 }
             }
 
@@ -80,8 +89,6 @@
                     center: pos,
                 })
 
-                addGMapMarker(pos, "blue")
-
                 window.initMap = initMap;
             }
 
@@ -89,7 +96,7 @@
             {
                 const pos = new google.maps.LatLng(resort.lat, resort.lon);
                 gMap.setCenter(pos);
-                gMap.setZoom(10);
+                gMap.setZoom(9);
             }
         </script>
 	</head>
@@ -223,7 +230,8 @@
 
                 // Build list of resorts to get hotels around based on resorts received
                 resortRequests = []
-                resortData.forEach(d => {
+                resortData.forEach((d, idx) => {
+                    resortData[idx]['idx'] = idx
                     request = d3.json('/gethotel?lat=' + d.lat + '&lon=' + d.lon + '&limit=100')
                     resortRequests.push(request)
                 })
@@ -288,9 +296,11 @@
                                            .style('stroke', 'gray')
                        })
                        .on('click', function(d) {
-                           deleteMarkers()
+                           deleteMarkers(resortMarkers)
+                           addGMapMarker(new google.maps.LatLng(d.lat, d.lon), resortMarkers, "green")
+                           deleteMarkers(lodgingMarkers)
+                           addAllGmapMarkers(resortRequestData[d.idx], lodgingMarkers)
                            centerGMapOnResort(d)
-                           addGMapMarker(new google.maps.LatLng(d.lat, d.lon), "green")
                        })
                        .append("title")			//Simple tooltip
                        .text(function(d) {
