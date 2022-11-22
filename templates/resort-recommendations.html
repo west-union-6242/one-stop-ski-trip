@@ -4,13 +4,67 @@
     <meta charset="UTF-8">
     <title>Test</title>
 </head>
-<script src="/static/js/libs/d3.v2.min.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js" integrity="sha512-wNH6xsp2n8CfB91nrBtfc4sfLwYPBMjSWVUwQOp60AYYXH6i8yCwuKFZ4rgK2i6pQek/b+bSyR7b01/922IBzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://unpkg.com/topojson@3"></script>
 
-
-    <p>Test Test resort-recommend</p>
 
 <body>
-<script src='/static/js/resort-recommend.js'></script>
+<script>
+
+
+    // const url = 'get-resort-recommendations';
+    //
+    // fetchAndProcessData(url, function(data){
+    //     console.log("=======Start Visualizing code here===========")
+    // })
+    //
+    //
+    // function fetchAndProcessData(endpoint, callback) {
+    //     var xhr = new XMLHttpRequest();
+    //
+    //     xhr.onreadystatechange = function () {
+    //         if (this.readyState != 4) return;
+    //
+    //         if (this.status == 200) {
+    //             var data = JSON.parse(this.responseText);
+    //             console.log(data)
+    //
+    //             callback(data)
+    //         }
+    //     };
+    //
+    //     xhr.open('GET', endpoint, true);
+    //     xhr.send();
+    // }
+
+
+</script>
+<h2 class='title'>You may enjoy the resorts below:</h2>
+<table class=table>
+    <tr>
+        {% for col_name in resorts_df.columns %}
+        <td>{{col_name}}</td>
+        {% endfor %}
+    </tr>
+
+
+    {% for row_index in range(resorts_df.shape[0]) %}
+    <tr>
+            {% for col_name in resorts_df.columns %}
+            <td>{{resorts_df.loc[row_index][col_name]}}</td>
+            {% endfor %}
+
+        <td><a href={{url_for('get_nearby_from_resort',resort=resorts_df.loc[row_index]['Resort'] )}}> get stay recommendation </a>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+<br>
+
 
 </body>
 </html>

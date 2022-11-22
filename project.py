@@ -56,7 +56,7 @@ def get_resort_ranking_data():
 
     with open("data/resort.csv", encoding='utf-8') as csvf:
         csvReader = csv.DictReader(csvf)
-        
+
         # Convert each row into a dictionary
         # and add it to data
         for row in csvReader:
@@ -82,25 +82,31 @@ def resort_preference():
     return render_template('resort-preference.html', resort_names=resort_names)
 
 
-@app.route('/get-resort-recommendations')
-def get_resort_recommend():
-    difficulty = request.args.get('difficulty')
-    goal = request.args.get('goal')
-    fav_resort = request.args.get('fav_resort')
-    print('form data:', difficulty, goal, fav_resort)
-    resorts = resort_recommender(difficulty, goal, fav_resort)
-    print('recommended resorts:', resorts)
-
-    return jsonify(resorts)
+# @app.route('/get-resort-recommendations')
+# def get_resort_recommend():
+#     difficulty = request.args.get('difficulty')
+#     goal = request.args.get('goal')
+#     fav_resort = request.args.get('fav_resort')
+#     print('form data:', difficulty, goal, fav_resort)
+#     resorts = resort_recommender(difficulty, goal, fav_resort)
+#     print('recommended resorts:', resorts)
+#     return json.dumps(resorts)
 
 
 @app.route('/resort-recommendations')
 def resort_recommendations():
-    return render_template('resort-recommendations.html')
+    difficulty = request.args.get('difficulty')
+    goal = request.args.get('goal')
+    fav_resort = request.args.get('fav_resort')
+    resorts_df = resort_recommender(difficulty, goal, fav_resort)
+
+    return render_template('resort-recommendations.html', resorts_df=resorts_df)
 
 
-@app.route("/nearby")
-def get_nearby_from_resort():
+@app.route("/nearby<resort>")
+def get_nearby_from_resort(resort):
+    resort = request.args.get('resort')
+    print('resort!!!', resort)
     return send_from_directory("html", "nearby.html")
 
 @app.route("/gethotel")
@@ -139,7 +145,7 @@ def gethotel():
 def getstatesgeo():
     file = open("data/geo_data/states.json", encoding="utf8")
     data = json.load(file)
-    return json.dumps(data)  
+    return json.dumps(data)
 
 @app.route("/reload")
 def reload():

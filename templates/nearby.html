@@ -1,0 +1,114 @@
+<html>
+    <head>
+        <style>
+            #map {
+                height: 400px;
+                width: 100%;
+            }
+        </style>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
+        <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js" integrity="sha512-wNH6xsp2n8CfB91nrBtfc4sfLwYPBMjSWVUwQOp60AYYXH6i8yCwuKFZ4rgK2i6pQek/b+bSyR7b01/922IBzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://unpkg.com/topojson@3"></script>
+        <script>
+
+            function fetchAndProcessData(endpoint, callback) {
+                var xhr = new XMLHttpRequest();
+
+                xhr.onreadystatechange = function () {
+                    if (this.readyState != 4) return;
+
+                    if (this.status == 200) {
+                        var data = JSON.parse(this.responseText);
+                        //console.log(data)
+                        
+                        callback(data)
+                    }
+                };
+
+                xhr.open('GET', endpoint, true);
+                xhr.send();
+            }
+
+            // Initialize and add the map
+            function initMap() {
+                // The location of Aspen
+                const aspen = { lat: 39.1863, lng: -106.8182 };
+                // The map, centered at Aspen
+                const map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 4,
+                    center: aspen,
+                });
+
+                var endpoint = 'gethotel';
+
+                fetchAndProcessData(endpoint, function(data) {
+                    data.forEach(d => new google.maps.Marker({
+                        position: { lat: d['lat'], lng: d['lon'] },
+                        map: map,
+                    }))
+                })
+
+                window.initMap = initMap;
+            } 
+        </script>
+    </head>
+    <body>
+        <div id="choropleth_area"></div>
+        <div id="map"></div>
+        <script>
+            // enter code to define margin and dimensions for svg
+            var margin = {top: 20, right: 20, bottom: 20, left: 20}
+            var padding = {top: 0, right: 0, bottom: 0, left: 0}
+            var outerWidth = 960
+            var outerHeight = 500
+            var innerWidth = outerWidth - margin.left - margin.right
+            var innerHeight = outerHeight - margin.top - margin.bottom
+            var width = innerWidth - padding.left - padding.right
+            var height = innerHeight - padding.top - padding.bottom
+    
+            // enter code to create svg
+            let svg = d3
+              .select("#choropleth_area")
+              .append("svg")
+              .attr("id", "choropleth")
+              .attr("width", outerWidth)
+              .attr("height", outerHeight)
+
+            // enter code to create color scale
+            quantile = d3.scaleQuantile()
+              .range(["#ffffcc", "#a1dab4", "#41b6c4", "#225ea8"])
+              //.range(["#f6eff7", "#bdc9e1", "#67a9cf", "#02818a"])
+
+            let svg_map = svg
+              .append("g")
+              .attr("id", "countries")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            
+            //var projection = d3.geoNaturalEarth1().translate([width/2, height/2]);
+            var projection = d3.geoAlbersUsa().translate([width/2, height/2]);
+            var path = d3.geoPath().projection(projection);
+
+            var endpoint = 'getstatesgeo';
+
+            fetchAndProcessData(endpoint, createMap)
+
+            function createMap(states) {
+                svg_map.selectAll("path")
+                  .data(states.features)
+                  .enter()
+                  .append("path")
+                  .attr("class","states")
+                  .attr("d", path)
+                  .style("stroke", "black")
+                  .style("fill", "white")
+
+                d3.select("#map")
+                  .style("display", "none")
+            }
+        </script>
+        
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsIkSW_j4Ml6Cy_xx5vqepARjEaul4SSM&callback=initMap"></script>
+    </body>
+</html>
