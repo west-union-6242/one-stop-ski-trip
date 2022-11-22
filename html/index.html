@@ -180,6 +180,71 @@
                 xhr.open('GET', endpoint, true);
                 xhr.send();
             }
+
+            var normalize = function(val, max, min, range=[1, 10]) {
+                delta = max - min
+                rangeDelta = range[1] - range[0]
+
+                return range[0] + (val - min) * rangeDelta / delta
+            }
+
+            var normalizeArray = function(arr, range=[1, 10]) {
+                var normArr = []
+                // Math.max and min return NaN for some reason, so lets do it the "hard" way
+                var max = 0
+                var min = Number.MAX_SAFE_INTEGER
+                arr.forEach(val => {
+                    if(val > max)
+                        max = val
+
+                    if(val < min)
+                        min = val
+                })
+
+                arr.forEach((val) => {
+                    normArr.push(normalize(val, max, min, range))
+                })
+
+                return normArr
+            }
+
+            var normalizeData = function(data, range=[1, 10]) {
+                vals = []
+                data.forEach(d => {
+                    vals.push(d['weightedRanking'])
+                })
+
+                vals = normalizeArray(vals, range)
+
+                data.forEach((d, idx) => {
+                    d['weightedRanking'] = vals[idx]
+                })
+            }
+
+            var weightedRanking = function(d, params=['price', 'distance'], weights=[0.6, 0.4]) {
+                total = 0
+                for(const [idx, param] of params.entries()) {
+                    total += d[param] * weights[idx]
+                }
+
+                // Lower total is better, so return inverse
+                return 1 / total
+            }
+
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                var R = 6371; // Radius of the earth in km
+                var dLat = (lat2 - lat1) * Math.PI / 180;
+                var dLon = (lon2 - lon1) * Math.PI / 180;
+                var lat1 = lat1 * Math.PI / 180;
+                var lat2 = lat2 * Math.PI / 180;
+
+                var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon/2);
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                var d = R * c;
+
+                return d;
+            }
 /*
             var handleResortClick = function(resort, limit=100) {
                 var endpoint = 'gethotel?limit=' + limit + '&lat=' + resort.lat + '&lon=' + resort.lon
@@ -243,6 +308,17 @@
                         d3.max(data, function(d) { return d.value; })
                     ]);*/
                     
+                    resortRequestData.forEach((lodgingSet, idx) => {
+                        lodgingSet.forEach(lodging => {
+                            distance = calculateDistance(resortData[idx].lat, resortData[idx].lon, lodging.lat, lodging.lon)
+                            lodging['distance'] = distance
+                            ranking = weightedRanking(lodging)
+                            lodging['weightedRanking'] = ranking
+                        })
+                        normalizeData(lodgingSet)
+                    })
+
+                    //console.log(resortRequestData)
                     map.selectAll("path")
                         .data(statesGeoData.features)
                         .enter()
