@@ -301,6 +301,14 @@
                            deleteMarkers(lodgingMarkers)
                            addAllGmapMarkers(resortRequestData[d.idx], lodgingMarkers)
                            centerGMapOnResort(d)
+
+                           projection.translate([0, 0])
+
+                           var resortPos = projection([d.lon, d.lat]);
+                           map.transition()
+                                .call(zoom.transform, d3.zoomIdentity
+							    .translate(w/2-resortPos[0], h/2-resortPos[1])
+                                .scale(1.5))
                        })
                        .append("title")			//Simple tooltip
                        .text(function(d) {
