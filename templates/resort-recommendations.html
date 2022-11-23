@@ -57,7 +57,7 @@
             <td>{{resorts_df.loc[row_index][col_name]}}</td>
             {% endfor %}
 
-        <td><a href={{url_for('get_nearby_from_resort',resort=resorts_df.loc[row_index]['Resort'] )}}> get stay recommendation </a>
+        <td><a href={{url_for('get_nearby_from_resort?' + resort=resorts_df.loc[row_index]['Resort'] )}}> get stay recommendation </a>
         </td>
     </tr>
     {% endfor %}

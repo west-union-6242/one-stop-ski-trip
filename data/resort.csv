@@ -1,5 +1,5 @@
 resort_name,state,summit,base,vertical,lifts,runs,acres,green_percent,green_acres,blue_percent,blue_acres,black_percent,black_acres,lat,lon
-"49(degrees) North, WA",Washington,5774,3923,1851,6,68,2325,0.3,697.5,0.4,930,0.3,697.5,49,-115.84
+"49(degrees) North, WA",Washington,5774,3923,1851,6,68,2325,0.3,697.5,0.4,930,0.3,697.5,48.3016,-117.5629
 "Afton Alps, MN",Minnesota,700,350,350,21,48,300,0.2,60,0.6,180,0.2,60,44.85,-92.79
 "Alpine Meadows, CA",California,8673,6385,2288,13,100,2400,0.25,600,0.4,960,0.35,840,39.17,-120.22
 "Alpine Mountain, PA",Pennsylvania,1150,600,500,3,21,120,0.17,20.4,0.55,66,0.28,33.6,40.08,-76.9

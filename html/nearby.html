@@ -1,19 +1,169 @@
 <html>
     <head>
-        <style>
-            #map {
-                height: 400px;
-                width: 100%;
-            }
-        </style>
-        <script src="https://d3js.org/d3.v5.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
-        <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js" integrity="sha512-wNH6xsp2n8CfB91nrBtfc4sfLwYPBMjSWVUwQOp60AYYXH6i8yCwuKFZ4rgK2i6pQek/b+bSyR7b01/922IBzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <script src="https://unpkg.com/topojson@3"></script>
-        <script>
+        <meta charset="utf-8">
+		<title>United States Ski Resort Visualization</title>
+        <style type="text/css">
+			
+			.pan rect,
+			.zoom rect {
+				fill: black;
+				opacity: 0;
+			}
+			
+			.zoom rect {
+				rx: 5;  /* Rounded corners */
+				ry: 5;
+			}
 
-            function fetchAndProcessData(endpoint, callback) {
+			.pan text,
+			.zoom text {
+				fill: black;
+				font-size: 18px;
+				text-anchor: middle;
+			}
+
+			.pan:hover rect,
+ 			.pan:hover text,
+			.zoom:hover rect,
+ 			.zoom:hover text {
+				fill: blue;
+			}
+
+            #gmap {
+                height: 500px;
+                width: 960px;
+            }
+		</style>
+		<script type="text/javascript" src="public/d3.v5.min.js"></script>
+        <script type="text/javascript" src="public/topojson.v2.min.js"></script>
+        <script type="text/javascript" src="public/d3-geo-projection.v2.min.js"></script>
+        <script type="text/javascript" src="public/d3-legend.min.js"></script>
+        <script type="text/javascript" src="public/topojson.v2.min.js"></script>
+        <script>
+            var gMap;
+            var resortMarkers = []
+            var lodgingMarkers = []
+
+            markerColors = {
+                'blue': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                'green': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+            }
+
+            console.log("this is the html one!!")
+            function addGMapMarker(pos, markerArr, color=null) {
+                const marker = new google.maps.Marker({
+                    position: pos,
+                    map: gMap
+                });
+
+                if(color && color in markerColors) {
+                    marker.setIcon(markerColors[color])
+                }
+                markerArr.push(marker)
+            }
+
+            function addAllGmapMarkers(data, markerArr, color=null) {
+                data.forEach(d => {
+                    addGMapMarker(new google.maps.LatLng(d.lat, d.lon), markerArr, color)
+                })
+            }
+
+            // Deletes all markers in the array by removing references to them.
+            function deleteMarkers(markerArr) {
+                for (let i = 0; i < markerArr.length; i++) {
+                    markerArr[i].setMap(null);
+                }
+                while(markerArr.length > 0) {
+                    markerArr.pop();
+                }
+            }
+
+            // Initialize and add the Google map, centered on geographic center of US
+            function initMap() {
+                // Center on geographic center of US
+                var lat = 39.8283
+                var lon = -98.5795
+                const pos = new google.maps.LatLng(lat, lon);
+                gMap = new google.maps.Map(document.getElementById("gmap"), {
+                    zoom: 4,
+                    center: pos,
+                })
+
+                window.initMap = initMap;
+            }
+
+            function centerGMapOnResort(resort)
+            {
+                const pos = new google.maps.LatLng(resort.lat, resort.lon);
+                gMap.setCenter(pos);
+                gMap.setZoom(9);
+            }
+        </script>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div id="gmap"></div>
+		<script type="text/javascript">
+
+			//Width and height
+			var w = 960;
+			var h = 500;
+
+			//Define map projection
+			var projection = d3.geoAlbersUsa()
+								   .translate([0, 0]);
+
+			//Define path generator
+			var path = d3.geoPath()
+							 .projection(projection);
+				 
+			//Define quantize scale to sort data values into buckets of color
+			var color = d3.scaleQuantize()
+								.range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
+								//Colors taken from colorbrewer.js, included in the D3 download
+
+            var quantile = d3.scaleQuantile()
+                             .range(["#ffffcc", "#a1dab4", "#41b6c4", "#225ea8"])
+			//Number formatting for population values
+			var formatAsThousands = d3.format(",");  //e.g. converts 123456 to "123,456"
+
+			//Create SVG element
+			var svg = d3.select("#map")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			//Define what to do when panning or zooming
+			var zooming = function(d) {
+
+				//Log out d3.event.transform, so you can see all the goodies inside
+				//console.log(d3.event.transform);
+
+				//New offset array
+				var offset = [d3.event.transform.x, d3.event.transform.y];
+                console.log(offset)
+				//Calculate new scale
+				var newScale = d3.event.transform.k * 2000;
+
+				//Update projection with new offset and scale
+				projection.translate(offset)
+						  .scale(newScale);
+
+				//Update all paths and circles
+				svg.selectAll("path")
+					.attr("d", path);
+
+				svg.selectAll("circle")
+					.attr("cx", function(d) {
+						return projection([d.lon, d.lat])[0];
+					})
+					.attr("cy", function(d) {
+						return projection([d.lon, d.lat])[1];
+					});
+
+			}
+
+            var fetchAndProcessData = function(endpoint, callback) {
                 var xhr = new XMLHttpRequest();
 
                 xhr.onreadystatechange = function () {
@@ -31,84 +181,439 @@
                 xhr.send();
             }
 
-            // Initialize and add the map
-            function initMap() {
-                // The location of Aspen
-                const aspen = { lat: 39.1863, lng: -106.8182 };
-                // The map, centered at Aspen
-                const map = new google.maps.Map(document.getElementById("map"), {
-                    zoom: 4,
-                    center: aspen,
-                });
+            var normalize = function(val, max, min, range=[1, 10]) {
+                delta = max - min
+                rangeDelta = range[1] - range[0]
 
-                var endpoint = 'gethotel';
+                return range[0] + (val - min) * rangeDelta / delta
+            }
 
-                fetchAndProcessData(endpoint, function(data) {
-                    data.forEach(d => new google.maps.Marker({
-                        position: { lat: d['lat'], lng: d['lon'] },
-                        map: map,
-                    }))
+            var normalizeArray = function(arr, range=[1, 10]) {
+                var normArr = []
+                // Math.max and min return NaN for some reason, so lets do it the "hard" way
+                var max = 0
+                var min = Number.MAX_SAFE_INTEGER
+                arr.forEach(val => {
+                    if(val > max)
+                        max = val
+
+                    if(val < min)
+                        min = val
                 })
 
-                window.initMap = initMap;
-            } 
-        </script>
-    </head>
-    <body>
-        <div id="choropleth_area"></div>
-        <div id="map"></div>
-        <script>
-            // enter code to define margin and dimensions for svg
-            var margin = {top: 20, right: 20, bottom: 20, left: 20}
-            var padding = {top: 0, right: 0, bottom: 0, left: 0}
-            var outerWidth = 960
-            var outerHeight = 500
-            var innerWidth = outerWidth - margin.left - margin.right
-            var innerHeight = outerHeight - margin.top - margin.bottom
-            var width = innerWidth - padding.left - padding.right
-            var height = innerHeight - padding.top - padding.bottom
-    
-            // enter code to create svg
-            let svg = d3
-              .select("#choropleth_area")
-              .append("svg")
-              .attr("id", "choropleth")
-              .attr("width", outerWidth)
-              .attr("height", outerHeight)
+                arr.forEach((val) => {
+                    normArr.push(normalize(val, max, min, range))
+                })
 
-            // enter code to create color scale
-            quantile = d3.scaleQuantile()
-              .range(["#ffffcc", "#a1dab4", "#41b6c4", "#225ea8"])
-              //.range(["#f6eff7", "#bdc9e1", "#67a9cf", "#02818a"])
-
-            let svg_map = svg
-              .append("g")
-              .attr("id", "countries")
-              .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-            
-            //var projection = d3.geoNaturalEarth1().translate([width/2, height/2]);
-            var projection = d3.geoAlbersUsa().translate([width/2, height/2]);
-            var path = d3.geoPath().projection(projection);
-
-            var endpoint = 'getstatesgeo';
-
-            fetchAndProcessData(endpoint, createMap)
-
-            function createMap(states) {
-                svg_map.selectAll("path")
-                  .data(states.features)
-                  .enter()
-                  .append("path")
-                  .attr("class","states")
-                  .attr("d", path)
-                  .style("stroke", "black")
-                  .style("fill", "white")
-
-                d3.select("#map")
-                  .style("display", "none")
+                return normArr
             }
-        </script>
-        
+
+            var normalizeData = function(data, range=[1, 10]) {
+                vals = []
+                data.forEach(d => {
+                    vals.push(d['weightedRanking'])
+                })
+
+                vals = normalizeArray(vals, range)
+
+                data.forEach((d, idx) => {
+                    d['weightedRanking'] = vals[idx]
+                })
+            }
+
+            var weightedRanking = function(d, params=['price', 'distance'], weights=[0.6, 0.4]) {
+                total = 0
+                for(const [idx, param] of params.entries()) {
+                    total += d[param] * weights[idx]
+                }
+
+                // Lower total is better, so return inverse
+                return 1 / total
+            }
+
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                var R = 6371; // Radius of the earth in km
+                var dLat = (lat2 - lat1) * Math.PI / 180;
+                var dLon = (lon2 - lon1) * Math.PI / 180;
+                var lat1 = lat1 * Math.PI / 180;
+                var lat2 = lat2 * Math.PI / 180;
+
+                var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon/2);
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                var d = R * c;
+
+                return d;
+            }
+/*
+            var handleResortClick = function(resort, limit=100) {
+                var endpoint = 'gethotel?limit=' + limit + '&lat=' + resort.lat + '&lon=' + resort.lon
+                fetchAndProcessData(endpoint, function(data) {
+                    //console.log(data)
+
+                    // Visualize the hotel data
+                })
+                deleteMarkers()
+                centerGMapOnResort(resort)
+                addGMapMarker(resort.lat, resort.lon)
+                console.log(gMapMarkers)
+            }
+*/
+			//Then define the zoom behavior
+			var zoom = d3.zoom()
+						 .on("zoom", zooming);
+
+			//The center of the country, roughly
+			var center = projection([-97.0, 39.0]);
+
+			//Create a container in which all zoom-able elements will live
+			var map = svg.append("g")
+						.attr("id", "map")
+						.call(zoom)  //Bind the zoom behavior
+  						.call(zoom.transform, d3.zoomIdentity  //Then apply the initial transform
+							.translate(w/2, h/2)
+							.scale(0.5)
+							.translate(-center[0], -center[1]));
+
+			//Create a new, invisible background rect to catch zoom events
+			map.append("rect")
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("width", w)
+				.attr("height", h)
+				.attr("opacity", 0);
+
+            Promise.all([
+                            d3.json("public/us-states.json"),
+                            d3.json("/get-resort-ranking-data"),
+                        ])
+                    .then(function(values) {
+
+                //console.log("values:", values)
+                statesGeoData = values[0]
+                resortData = values[1]
+
+                // Build list of resorts to get hotels around based on resorts received
+                resortRequests = []
+                resortData.forEach((d, idx) => {
+                    resortData[idx]['idx'] = idx
+                    request = d3.json('/gethotel?lat=' + d.lat + '&lon=' + d.lon + '&limit=100')
+                    resortRequests.push(request)
+                })
+
+                Promise.all(resortRequests).then(function(resortRequestData) {
+                    /*
+                    quantile.domain([
+                        d3.min(data, function(d) { return d.value; }), 
+                        d3.max(data, function(d) { return d.value; })
+                    ]);*/
+                    
+                    resortRequestData.forEach((lodgingSet, idx) => {
+                        lodgingSet.forEach(lodging => {
+                            distance = calculateDistance(resortData[idx].lat, resortData[idx].lon, lodging.lat, lodging.lon)
+                            lodging['distance'] = distance
+                            ranking = weightedRanking(lodging)
+                            lodging['weightedRanking'] = ranking
+                        })
+                        normalizeData(lodgingSet)
+                    })
+
+                    //console.log(resortRequestData)
+                    map.selectAll("path")
+                        .data(statesGeoData.features)
+                        .enter()
+                        .append("path")
+                        .attr("d", path)
+                        .style("fill", function(d) {
+                                //Get data value
+                                /*var value = d.properties.value;
+                                
+                                if (value) {
+                                    //If value exists…
+                                    return color(value);
+                                }*/
+
+                                // Will need to think of something interesting to color it besides grey
+                                return "#ccc";
+                        })
+                        .style('stroke-width', 0.1)
+                        .style('stroke', 'black')
+                        .on('mouseover', function(d) {
+                                d3.select(this).style('stroke-width', 1)
+                        })
+                        .on('mouseout', function(d) {
+                                d3.select(this).style('stroke-width', 0.1)
+                        })
+
+                    map.selectAll("circle")
+                       .data(resortData)
+                       .enter()
+                       .append("circle")
+                       .attr("cx", function(d) {
+                            return projection([d.lon, d.lat])[0];
+                       })
+                       .attr("cy", function(d) {
+                            return projection([d.lon, d.lat])[1];
+                       })
+                       .attr("r", function(d) {
+                            // The recommendedness of the resort (placeholder/random data for now)
+                            return d.recommendation_level;
+                       })
+                       .style("fill", "yellow")
+                       .style("stroke", "gray")
+                       .style("stroke-width", 0.25)
+                       .style("opacity", 0.75)
+                       .on('mouseover', function(d) {
+                            d3.select(this).style('stroke-width', 1)
+                                           .style('stroke', 'black')
+                       })
+                       .on('mouseout', function(d) {
+                            d3.select(this).style('stroke-width', 0.25)
+                                           .style('stroke', 'gray')
+                       })
+                       .on('click', function(d) {
+                           deleteMarkers(resortMarkers)
+                           addGMapMarker(new google.maps.LatLng(d.lat, d.lon), resortMarkers, "green")
+                           deleteMarkers(lodgingMarkers)
+                           addAllGmapMarkers(resortRequestData[d.idx], lodgingMarkers)
+                           centerGMapOnResort(d)
+
+                           projection.translate([0, 0])
+
+                           var resortPos = projection([d.lon, d.lat]);
+                           map.transition()
+                                .call(zoom.transform, d3.zoomIdentity
+							    .translate(w/2-resortPos[0], h/2-resortPos[1])
+                                .scale(1.5))
+                       })
+                       .append("title")			//Simple tooltip
+                       .text(function(d) {
+                            return d.resort_name + ": Recommendation rank " + d.recommendation_level;
+                       });
+                    
+                    createPanButtons();
+                    createZoomButtons();
+                })
+            })
+
+            
+			//Load in agriculture data
+/*			d3.csv("public/us-ag-productivity.csv", function(data) {
+
+                console.log(data)
+				//Set input domain for color scale
+				
+                
+                console.log("here")
+				//Load in GeoJSON data
+				d3.json("public/us-states.json", function(json) {
+                    console.log(json)
+					//Merge the ag. data and GeoJSON
+					//Loop through once for each ag. data value
+					for (var i = 0; i < data.length; i++) {
+				
+						var dataState = data[i].state;				//Grab state name
+						var dataValue = parseFloat(data[i].value);	//Grab data value, and convert from string to float
+				
+						//Find the corresponding state inside the GeoJSON
+						for (var j = 0; j < json.features.length; j++) {
+						
+							var jsonState = json.features[j].properties.name;
+				
+							if (dataState == jsonState) {
+						
+								//Copy the data value into the JSON
+								json.features[j].properties.value = dataValue;
+								
+								//Stop looking through the JSON
+								break;
+								
+							}
+						}		
+					}
+
+*/
+			//Create panning buttons
+			var createPanButtons = function() {
+
+				//Create the clickable groups
+
+				//North
+				var north = svg.append("g")
+					.attr("class", "pan")	//All share the 'pan' class
+					.attr("id", "north");	//The ID will tell us which direction to head
+
+				north.append("rect")
+					.attr("x", 0)
+					.attr("y", 0)
+					.attr("width", w)
+					.attr("height", 30);
+
+				north.append("text")
+					.attr("x", w/2)
+					.attr("y", 20)
+					.html("&uarr;")
+				
+				//South
+				var south = svg.append("g")
+					.attr("class", "pan")
+					.attr("id", "south");
+
+				south.append("rect")
+					.attr("x", 0)
+					.attr("y", h - 30)
+					.attr("width", w)
+					.attr("height", 30);
+
+				south.append("text")
+					.attr("x", w/2)
+					.attr("y", h - 10)
+					.html("&darr;")
+
+				//West
+				var west = svg.append("g")
+					.attr("class", "pan")
+					.attr("id", "west");
+
+				west.append("rect")
+					.attr("x", 0)
+					.attr("y", 30)
+					.attr("width", 30)
+					.attr("height", h - 60);
+
+				west.append("text")
+					.attr("x", 15)
+					.attr("y", h/2)
+					.html("&larr;")
+
+				//East
+				var east = svg.append("g")
+					.attr("class", "pan")
+					.attr("id", "east");
+
+				east.append("rect")
+					.attr("x", w - 30)
+					.attr("y", 30)
+					.attr("width", 30)
+					.attr("height", h - 60);
+
+				east.append("text")
+					.attr("x", w - 15)
+					.attr("y", h/2)
+					.html("&rarr;")
+
+				//Panning interaction
+
+				d3.selectAll(".pan")
+					.on("click", function() {
+
+						//Set how much to move on each click
+						var moveAmount = 50;
+						
+						//Set x/y to zero for now
+						var x = 0;
+						var y = 0;
+						
+						//Which way are we headed?
+						var direction = d3.select(this).attr("id");
+
+						//Modify the offset, depending on the direction
+						switch (direction) {
+							case "north":
+								y += moveAmount;  //Increase y offset
+								break;
+							case "south":
+								y -= moveAmount;  //Decrease y offset
+								break;
+							case "west":
+								x += moveAmount;  //Increase x offset
+								break;
+							case "east":
+								x -= moveAmount;  //Decrease x offset
+								break;
+							default:
+								break;
+						}
+
+						//This triggers a zoom event, translating by x, y
+						map.transition()
+							.call(zoom.translateBy, x, y);
+
+					});
+
+			};
+			
+			//Create zoom buttons
+			var createZoomButtons = function() {
+
+				//Create the clickable groups
+
+				//Zoom in button
+				var zoomIn = svg.append("g")
+					.attr("class", "zoom")	//All share the 'zoom' class
+					.attr("id", "in")		//The ID will tell us which direction to head
+					.attr("transform", "translate(" + (w - 110) + "," + (h - 70) + ")");
+
+				zoomIn.append("rect")
+					.attr("x", 0)
+					.attr("y", 0)
+					.attr("width", 30)
+					.attr("height", 30);
+
+				zoomIn.append("text")
+					.attr("x", 15)
+					.attr("y", 20)
+					.text("+");
+				
+				//Zoom out button
+				var zoomOut = svg.append("g")
+					.attr("class", "zoom")
+					.attr("id", "out")
+					.attr("transform", "translate(" + (w - 70) + "," + (h - 70) + ")");
+
+				zoomOut.append("rect")
+					.attr("x", 0)
+					.attr("y", 0)
+					.attr("width", 30)
+					.attr("height", 30);
+
+				zoomOut.append("text")
+					.attr("x", 15)
+					.attr("y", 20)
+					.html("&ndash;");
+
+				//Zooming interaction
+
+				d3.selectAll(".zoom")
+					.on("click", function() {
+
+						//Set how much to scale on each click
+						var scaleFactor;
+						
+						//Which way are we headed?
+						var direction = d3.select(this).attr("id");
+
+						//Modify the k scale value, depending on the direction
+						switch (direction) {
+							case "in":
+								scaleFactor = 1.5;
+								break;
+							case "out":
+								scaleFactor = 0.75;
+								break;
+							default:
+								break;
+						}
+
+						//This triggers a zoom event, scaling by 'scaleFactor'
+						map.transition()
+							.call(zoom.scaleBy, scaleFactor);
+
+					});
+
+			};
+
+		</script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsIkSW_j4Ml6Cy_xx5vqepARjEaul4SSM&callback=initMap"></script>
-    </body>
+	</body>
 </html>

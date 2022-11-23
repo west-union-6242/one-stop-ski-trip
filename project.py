@@ -68,6 +68,24 @@ def get_resort_ranking_data():
     # Return 5 random resorts, only rankings above 8
     return json.dumps(random.sample([d for d in data if d['recommendation_level'] > 8], 5))
 
+# Get data for specified resort
+@app.route('/get-resort-data')
+def get_resort_data():
+    resort = request.args.get('resort')
+    data = []
+
+    with open("data/resort.csv", encoding='utf-8') as csvf:
+        csvReader = csv.DictReader(csvf)
+
+        for row in csvReader:
+            print(row['resort_name'])
+            print(resort)
+            if row['resort_name'] == resort:
+                data.append(row)
+                break
+
+    return json.dumps(data)
+
 @app.route("/")
 def default():
     return send_from_directory("html", "index.html")
@@ -104,11 +122,17 @@ def resort_recommendations():
     return render_template('resort-recommendations.html', resorts_df=resorts_df)
 
 
-@app.route("/nearby<resort>")
-def get_nearby_from_resort(resort):
+#@app.route("/nearby<resort>")
+#def get_nearby_from_resort(resort):
+#    resort = request.args.get('resort')
+#    print('resort!!!', resort)
+#    return send_from_directory("html", "nearby.html", message=resort)
+
+@app.route("/nearby")
+def get_nearby_from_resort():
     resort = request.args.get('resort')
     print('resort!!!', resort)
-    return send_from_directory("html", "nearby.html")
+    return render_template("nearby.html", resort=resort)
 
 @app.route("/gethotel")
 def gethotel():
