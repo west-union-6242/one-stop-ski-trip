@@ -14,6 +14,7 @@ import json
 import random
 import os
 from logic.resort_recommender import resort_recommender
+from priceModel import priceModel
 
 class dataproc():
     def create_connection(self, path):
@@ -150,6 +151,7 @@ def getstatesgeo():
 @app.route("/reload")
 def reload():
     try:
+        pm = priceModel("data/trainingdata_price1.csv")
         db = dataproc()
         db.create_connection("westunion.db")
         db.execute_query("drop table if exists airbnb;")
@@ -170,7 +172,7 @@ def reload():
                                     row[i] = 0
                                 if i in {0, 3, 5, 7}:
                                     row[i] = row[i].replace("'", "")
-                            price = round(random.random() * 800 + 200, 2)
+                            price = pm.predict(row)
                             lat = float(row[1])
                             lon = float(row[2])
                             sql = "insert into airbnb (address, lat, lon, name, numberOfGuests, roomType, stars, url, price, sinlat, coslat, sinlon, coslon) values ('{}',{},{},'{}',{},'{}',{},'{}', {}, {}, {}, {}, {});".format(row[0], lat, lon, row[3], row[4], row[5], row[6], row[7], price, math.sin(math.radians(lat)), math.cos(math.radians(lat)), math.sin(math.radians(lon)), math.cos(math.radians(lon)))
