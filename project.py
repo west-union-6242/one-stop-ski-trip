@@ -78,8 +78,6 @@ def get_resort_data():
         csvReader = csv.DictReader(csvf)
 
         for row in csvReader:
-            print(row['resort_name'])
-            print(resort)
             if row['resort_name'] == resort:
                 data.append(row)
                 break
