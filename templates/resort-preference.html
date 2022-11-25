@@ -1,28 +1,44 @@
 <!DOCTYPE html>
+<style>
+.green {background-color:rgba(0, 255, 0, .3);}
+.blue {background-color:rgba(0, 0, 255, .3);}
+.black {background-color:rgba(0, 0, 0, .3);}
+.bb {color: rgba(255, 255, 255, 1); background-color:rgba(0, 0, 0, .6);}
+.white {background-color:rgba(255, 255, 255, .3);}
+.main {
+  background-color: rgba(255, 255, 255, 0.7);
+  margin-top: 100px;
+
+}
+
+body {
+  background-image: url('https://media.gettyimages.com/id/1299429048/photo/scenic-view-of-snow-covered-ski-resort-against-sky.webp?s=1024x1024&w=gi&k=20&c=DGCjUh39fm08OBHpuRm_z3Wg-G1GCgvBi85O74oTHZA=');
+  background-size: 100%
+}
+@media only screen and (max-width: 600px) {
+    body {
+        background-size: auto;
+    }
+}
+
+</style>
+
+<div class="main" style="padding: 20px 25% 20px 25%;">
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>User Preferences</title>
+    <title>Questionnaire</title>
 </head>
 <body>
 
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
 
-  <script>
-//  var resorts=[]
-//  d3.csv("../data/resort.csv", function(data) {
-//    for (var i = 0; i < data.length; i++) {
-//        //console.log(data[i].resort_name);
-//        resorts.push(data[i].resort_name);
-//    }
-//});
-
-  </script>
-
+<h2><b>Please tell us a bit about yourself!</b></h2>
+<div><h5>Note: Please assign a point for how much you value each of the questions, from 1 to 10. (1 being the least important.)</h5></div>
 
 <form action="/resort-recommendations" method = ["GET","POST"]>
-    <p>What difficulty level trails would you like?</p>
+    <div><h3><b>1. I am a(n) ___ skier.</b></h3></div>
     <input type = "radio" checked="checked" name = "difficulty" value = beginner />
     Beginner
 
@@ -33,10 +49,10 @@
     Expert
     <br>
 
-    <label for="exppts">Points for difficulty level:</label>
+    <label for="exppts">Skier level importance point*:</label>
     <input type="text" id="exppts" name="exppts"><br>
 
-    <p>How would you describe your top goal for the trip? </p>
+    <div><h3><b>2. Which one below would best describe your top goal for the trip?</b></h3></div>
     <input type = "radio" checked="checked" name = "goal" value = goal_a />
     Just start skiing and see if I like it.
     <br>
@@ -52,24 +68,36 @@
     <input type = "radio" checked="checked" name = "goal" value = goal_d />
     Visit as many ski resorts as I can.
     <br>
-    <label for="goalpts">Points for goal:</label>
+    <label for="goalpts">Goal importance point*:</label>
     <input type="text" id="goalpts" name="goalpts"><br>
 
-    <p>Choose a resort that you are most interested in:</p>
+    <div><h3>3. Please select a resort that interests you the most:</h3></div>
+    <i> This doesn't have to be somewhere you have visited, it could be one that you have heard of and wanted to go. Your selection will help us recommend the most similiar resorts.</i><br>
     <select name = "fav_resort">
-        {% for resort in resorts %}
-        <option value="{{ resort }}"> Alta, UT </option>
-        <option value="{{ resort }}"> Aspen Mt, CO </option>
-        <option value="{{ resort }}"> Big Sky, MT </option>
-        {% endfor %}
+        <!--{% for resort in resorts %}-->
+        <option value="Alta, UT"> Alta, UT </option>
+        <option value="Aspen Mt, CO"> Aspen Mt, CO </option>
+        <option value="Big Sky, MT"> Big Sky, MT </option>
+        <option value="Breckenridge, CO"> Breckenridge, CO </option>
+        <option value="Heavenly, CA"> Heavenly, CA </option>
+        <option value="Keystone, CO"> Keystone, CO </option>
+        <option value="Mammoth, CA"> Mammoth, CA </option>
+        <option value="Park City Mt, UT"> Park City Mt, UT </option>
+        <option value="Snowbird, UT"> Snowbird, UT </option>
+        <option value="Snowmass, CO"> Snowmass, CO </option>
+        <option value="Telluride, CO"> Telluride, CO </option>
+        <option value="Timberline, OR"> Timberline, OR </option>
+        <option value="Vail, CO"> Vail, CO </option>
+        <!--{% endfor %}-->
     </select><br>
 
-    <label for="resortpts">Points for resort:</label><br>
+    <label for="resortpts">Resort importance point*:</label><br>
     <input type="text" id="resortpts" name="resortpts"><br>
+    <br>
 
 
 
-    <p><input type = "submit" value = "Submit" /></p>
+    <p><input type = "submit" value = "I'm ready for my personalized recommendations!!" /></p>
 </form>
 
 </body>
