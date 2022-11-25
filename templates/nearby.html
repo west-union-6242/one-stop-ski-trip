@@ -12,7 +12,9 @@
         <script type="text/javascript" src="public/topojson.v2.min.js"></script>
         <script type="text/javascript" src="public/d3-geo-projection.v2.min.js"></script>
         <script type="text/javascript" src="public/d3-legend.min.js"></script>
+		<script type="text/javascript" src="public/d3-tip.min.js"></script>
         <script type="text/javascript" src="public/topojson.v2.min.js"></script>
+
         <script>
             var gMap;
             var resortMarkers = []
@@ -191,13 +193,19 @@
             Promise.all([
                             d3.json("public/us-states.json"),
                             d3.json("/get-resort-data?resort=" + resortName),
+							d3.json("public/us-cities.json")
                         ])
                     .then(function(values) {
 
                 statesGeoData = values[0]
                 resortData = values[1]
 				recResort = resortData[0]
-				
+				citiesGeoData = values[2]
+				// Data include U.S. territories, so filter those out as well as cities under 10k population
+				citiesGeoData.features = citiesGeoData.features.filter(feature => {
+					return parseInt(feature.properties.state_fips) <= 50 && feature.properties.pop_2010 > 1000
+				})
+				console.log(citiesGeoData)
 				// Zoom in and center on the resort
 				projection.scale(30000)
 				var center = projection([recResort.lon, recResort.lat])
@@ -214,6 +222,7 @@
 					.append("g")
 					.attr("id", "legend")
 					.attr("transform", "translate(" + (outerWidth - 160) + "," + (margin.top)+ ")");
+
                 Promise.all([d3.json('/gethotel?lat=' + recResort.lat + '&lon=' + recResort.lon + '&limit=100')]).then(function(resortRequestData) {
 
 					lodgingData = resortRequestData[0]
@@ -242,6 +251,56 @@
                                 d3.select(this).style('stroke-width', 0.1)
                         })
 
+					map.selectAll("circle .city")
+                       .data(citiesGeoData.features)
+                       .enter()
+                       .append("circle")
+                       .attr('class', 'city')
+                       .attr("cx", function(d) {
+							//console.log(d)
+                            return projection([
+								d.geometry.coordinates[0],
+								d.geometry.coordinates[1]])[0];
+                       })
+                       .attr("cy", function(d) {
+							return projection([
+								d.geometry.coordinates[0],
+								d.geometry.coordinates[1]])[1];
+                       })
+                       .attr("r", function(d) {
+                            return 1.5;
+                       })
+                       .style("fill", "black")
+                       .style("stroke", "black")
+                       .style("stroke-width", 0.25)
+                       .style("opacity", 0.75)
+                       .on('mouseover', function(d) {
+                            d3.select(this).style('stroke-width', 1)
+                                           .style('stroke', 'black')
+                       })
+                       .on('mouseout', function(d) {
+                            d3.select(this).style('stroke-width', 0.25)
+                                           .style('stroke', 'gray')
+                       })
+					
+					map.selectAll("text .city")
+					   .data(citiesGeoData.features)
+					   .enter()
+                       .append("text")
+					   .attr("class", "city")
+					   .attr('x', function(d) {
+							return projection([
+								d.geometry.coordinates[0],
+								d.geometry.coordinates[1]])[0] + 5})
+					   .attr('y', function(d) {
+							return projection([
+								d.geometry.coordinates[0],
+								d.geometry.coordinates[1]])[1]})
+                       .text(function(d) {
+                            return d.properties.name;
+                       })
+					   .style("font-size", 10)
+
 					// Calculate grid dimensions
 					var gridData = []
 					const cellSideLen = 20
@@ -264,7 +323,6 @@
 					// Add the hotels to the appropriate cell to prepare gradient
 					lodgingData.forEach(lodging => {
 						cellIdx = determineCellIdx(lodging, cellSideLen, numCols, numRows)
-						console.log("cellIdx=" + cellIdx)
 						gridData[cellIdx].lodgings.push(lodging)
 					})
 					
@@ -294,7 +352,7 @@
 						.attr("width", width)
 						.attr("height", height)
 						.append("g");
-					
+
 					grid.selectAll("rect .cell")
 					    .data(gridData)
 						.enter()
@@ -323,7 +381,7 @@
 						//.style('stroke', 'black')
 						//.style('stroke-opacity', 0.1)
 						.style('opacity', 0.75)
-					
+
 					map.selectAll("circle .resort")
                        .data(resortData)
                        .enter()
@@ -353,6 +411,30 @@
                             return d.resort_name;
                        });
 					
+					var tip = d3.tip()
+						.attr("class", 'd3-tip')
+						.attr("id", "tooltip")
+						.offset(function() {
+							//var m = d3.mouse(this)[0]
+							//console.log(m[0])
+							
+							return [0, 0]
+						})
+						.html(function(d) {
+							return "<text>" + 
+									"Name: " + d.name + "</br>" +
+									"Price: $" + d.price + "</br>" +
+									"Our Rating: " + d.weightedRanking + "</br>" +
+									"Address: " + d.address + "</br>" +
+									"</text>"
+						})
+						.style("line-height", 1)
+						.style("font-size", "70%")
+						.style("padding", "5px")
+						.style("background", "rgba(0, 0, 0, 0.8)")
+						.style("color", "#fff")
+						.style("border-radius", "2px")
+
 					map.selectAll("circle .hotel")
                        .data(lodgingData)
                        .enter()
@@ -374,17 +456,15 @@
                        .on('mouseover', function(d) {
                             d3.select(this).style('stroke-width', 1)
                                            .style('stroke', 'black')
+							tip.show(d)
                        })
                        .on('mouseout', function(d) {
                             d3.select(this).style('stroke-width', 0.25)
                                            .style('stroke', 'gray')
+							tip.hide()
                        })
-                       .append("title")			//Simple tooltip
-                       .text(function(d) {
-							console.log(d)
-                            return d.name;
-                       });
 					
+					map.call(tip)
 					var legend = d3.legendColor()
 						.labelFormat(d3.format(".2f"))
 						.useClass(false)
