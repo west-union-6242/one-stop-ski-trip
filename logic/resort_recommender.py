@@ -86,19 +86,19 @@ def resort_recommender(difficulty, goal, fav_resort, exppts, goalpts, resortpts)
     colexp = 'blue_percent'
   else:
     colexp = 'black_percent'
-  if goal == 'Just start skiing and see if I like it.':
+  if goal == 'goal_a':
     goal = 'green_acres'
-  elif goal == 'Hit as many trails as I can.':
+  elif goal == 'goal_b':
     colgoal = 'runs'
-  elif goal == 'Top my vertical descending.':
+  elif goal == 'goal_c':
     colgoal = 'vertical'
-  elif goal == 'Visit as many ski resorts as I can.':
+  elif goal == 'goal_d':
     colgoal = 'neighbor_num'
     newdf = calculate_neighbors(fav_resort,newdf)
   newdf.loc[:,'goal_rank'] = newdf[colgoal].rank()
   newdf.loc[:,'exp_rank'] = newdf[colexp].rank()
   newdf.loc[:,'resort_rank'] = newdf['similarity'].rank()
-  newdf.loc[:, 'totalpts']= newdf['exp_rank']*exppts + newdf['goal_rank']*goalpts + newdf['resort_rank']*resortpts
+  newdf.loc[:, 'totalpts']= newdf['exp_rank']*int(exppts) + newdf['goal_rank']*int(goalpts) + newdf['resort_rank']*int(resortpts)
   fdf = newdf.nlargest(5, 'totalpts')
   loclist = list(zip(fdf.lat, fdf.lon))
   #print(fdf)
