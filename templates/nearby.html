@@ -67,11 +67,11 @@
                 window.initMap = initMap;
             }
 
-            function centerGMapOnResort(resort)
+            function centerAndZoomGMapOnLocation(lat, lon, zoom)
             {
-                const pos = new google.maps.LatLng(resort.lat, resort.lon);
+                const pos = new google.maps.LatLng(lat, lon);
                 gMap.setCenter(pos);
-                gMap.setZoom(9);
+                gMap.setZoom(zoom);
             }
         </script>
     </head>
@@ -113,7 +113,7 @@
 						.append("svg")
 						.attr("width", width)
 						.attr("height", height)
-						.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+						//.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
             var normalize = function(val, max, min, range=[1, 10]) {
                 delta = max - min
@@ -203,9 +203,9 @@
 				citiesGeoData = values[2]
 				// Data include U.S. territories, so filter those out as well as cities under 10k population
 				citiesGeoData.features = citiesGeoData.features.filter(feature => {
-					return parseInt(feature.properties.state_fips) <= 50 && feature.properties.pop_2010 > 1000
+					return parseInt(feature.properties.state_fips) <= 50 && feature.properties.pop_2010 > 1500
 				})
-				console.log(citiesGeoData)
+
 				// Zoom in and center on the resort
 				projection.scale(30000)
 				var center = projection([recResort.lon, recResort.lat])
@@ -216,7 +216,7 @@
 							 .attr("id", "map")
 							 .attr("width", width)
 							 .attr("height", height)
-							 .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+							 //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
 				var svg_legend = svg
 					.append("g")
@@ -257,7 +257,6 @@
                        .append("circle")
                        .attr('class', 'city')
                        .attr("cx", function(d) {
-							//console.log(d)
                             return projection([
 								d.geometry.coordinates[0],
 								d.geometry.coordinates[1]])[0];
@@ -323,7 +322,9 @@
 					// Add the hotels to the appropriate cell to prepare gradient
 					lodgingData.forEach(lodging => {
 						cellIdx = determineCellIdx(lodging, cellSideLen, numCols, numRows)
-						gridData[cellIdx].lodgings.push(lodging)
+						if(cellIdx >= 0 && cellIdx < gridData.length) {
+							gridData[cellIdx].lodgings.push(lodging)
+						}
 					})
 					
 					var getRankingAvg = function(d) {
@@ -415,16 +416,13 @@
 						.attr("class", 'd3-tip')
 						.attr("id", "tooltip")
 						.offset(function() {
-							//var m = d3.mouse(this)[0]
-							//console.log(m[0])
-							
 							return [0, 0]
 						})
 						.html(function(d) {
 							return "<text>" + 
 									"Name: " + d.name + "</br>" +
 									"Price: $" + d.price + "</br>" +
-									"Our Rating: " + d.weightedRanking + "</br>" +
+									"Our Rating: " + d.weightedRanking.toFixed(2) + "</br>" +
 									"Address: " + d.address + "</br>" +
 									"</text>"
 						})
@@ -463,6 +461,9 @@
                                            .style('stroke', 'gray')
 							tip.hide()
                        })
+					   .on('click', function(d) {
+							centerAndZoomGMapOnLocation(d.lat, d.lon, 16)
+					   })
 					
 					map.call(tip)
 					var legend = d3.legendColor()
@@ -474,7 +475,7 @@
 
 					addGMapMarker(new google.maps.LatLng(recResort.lat, recResort.lon), resortMarkers, "green")
 					addAllGmapMarkers(lodgingData, lodgingMarkers)
-					centerGMapOnResort(recResort)
+					centerAndZoomGMapOnLocation(recResort.lat, recResort.lon, 9)
 
                 })
             })
