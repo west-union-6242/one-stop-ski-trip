@@ -4,4 +4,4 @@ __pycache__/
 *.db
 *.db-journal
 *.swp
-
+*.DS_Store
