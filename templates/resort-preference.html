@@ -2,9 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>User Preferences</title>
 </head>
 <body>
+
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
+
+  <script>
+//  var resorts=[]
+//  d3.csv("../data/resort.csv", function(data) {
+//    for (var i = 0; i < data.length; i++) {
+//        //console.log(data[i].resort_name);
+//        resorts.push(data[i].resort_name);
+//    }
+//});
+
+  </script>
+
+
 <form action="/resort-recommendations" method = ["GET","POST"]>
     <p>What difficulty level trails would you like?</p>
     <input type = "radio" checked="checked" name = "difficulty" value = beginner />
@@ -17,7 +33,10 @@
     Expert
     <br>
 
-    <p>How would you describe your top goal for the trip </p>
+    <label for="exppts">Points for difficulty level:</label>
+    <input type="text" id="exppts" name="exppts"><br>
+
+    <p>How would you describe your top goal for the trip? </p>
     <input type = "radio" checked="checked" name = "goal" value = goal_a />
     Just start skiing and see if I like it.
     <br>
@@ -33,17 +52,25 @@
     <input type = "radio" checked="checked" name = "goal" value = goal_d />
     Visit as many ski resorts as I can.
     <br>
+    <label for="goalpts">Points for goal:</label>
+    <input type="text" id="goalpts" name="goalpts"><br>
 
-    <p>Choose a resort that you are most interested in </p>
+    <p>Choose a resort that you are most interested in:</p>
     <select name = "fav_resort">
-        {% for resort in resort_names %}
-        <option value="{{ resort }}"> {{ resort }} </option>
+        {% for resort in resorts %}
+        <option value="{{ resort }}"> Alta, UT </option>
+        <option value="{{ resort }}"> Aspen Mt, CO </option>
+        <option value="{{ resort }}"> Big Sky, MT </option>
         {% endfor %}
-    </select>>
+    </select><br>
+
+    <label for="resortpts">Points for resort:</label><br>
+    <input type="text" id="resortpts" name="resortpts"><br>
 
 
 
     <p><input type = "submit" value = "Submit" /></p>
 </form>
+
 </body>
 </html>

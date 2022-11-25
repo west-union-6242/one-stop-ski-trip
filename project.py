@@ -13,6 +13,7 @@ import csv
 import json
 import random
 import os
+import geopy
 from logic.resort_recommender import resort_recommender
 from priceModel import priceModel
 
@@ -115,7 +116,10 @@ def resort_recommendations():
     difficulty = request.args.get('difficulty')
     goal = request.args.get('goal')
     fav_resort = request.args.get('fav_resort')
-    resorts_df = resort_recommender(difficulty, goal, fav_resort)
+    exppts = request.args.get('exppts')
+    goalpts = request.args.get('goalpts')
+    resortpts = request.args.get('resortpts')
+    resorts_df = resort_recommender(difficulty, goal, fav_resort,exppts,goalpts,resortpts)
 
     return render_template('resort-recommendations.html', resorts_df=resorts_df)
 
@@ -208,5 +212,3 @@ def reload():
 
 if __name__ == '__main__':
     app.run(debug=False)
-
-
