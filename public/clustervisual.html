@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>United States Ski Resort Visualization</title>
+                <script type="text/javascript" src="d3.v5.min.js"></script>
+                <script type="text/javascript" src="d3-dsv.min.js"></script>
+                <script type="text/javascript" src="d3-geo-projection.v2.min.js"></script>
+                <script type="text/javascript" src="topojson.v2.min.js"></script>
+                <script type="text/javascript" src="d3-legend.min.js"></script>
+                <script type="text/javascript" src="d3-tip.min.js"></script>
+		<style type="text/css">
+		</style>
+
+
+
+        <script>
+
+var margin = {top: 20, right: 20, bottom: 20, left: 20},
+ padding = {top: 60, right: 60, bottom: 60, left: 60},
+ outerWidth = 960,
+ outerHeight = 500,
+ innerWidth = outerWidth - margin.left - margin.right,
+ innerHeight = outerHeight - margin.top - margin.bottom,
+ width = innerWidth - padding.left - padding.right,
+ height = innerHeight - padding.top - padding.bottom;
+
+		Promise.all([d3.json("us-states.json"), d3.csv("resort_cluster.csv"), 
+					d3.json("/gethotel?lat=49&lon=-115.84&limit=5"), 
+					"hello"]).then(
+			function(values) {
+
+			var projection = d3.geoNaturalEarth()
+			//var projection = d3.geoAlbersUsa();
+			//var projection = d3.geoMercator()
+			//var projection = d3.geoEquirectangular()
+					.scale(width/Math.PI*3)
+					.rotate([90,-45])
+		//			.center([0,0])
+		//			.translate([width,height])
+			console.log("projection:", projection([30,30]))
+
+			generator = d3.geoPath().projection(projection)
+
+			console.log("values:", values)
+
+			d3.select("body")
+			.append("svg")
+			.attr("width", outerWidth)
+			.attr("height", outerHeight)
+			.attr("id", "mapdiv")
+			.attr("preserveAspectRatio", "xMinYMin meet")
+	    		.attr("viewBox", "0 0 " + outerWidth + " " + outerHeight)
+			.attr("background", "#c9e8fd")
+			.classed("svg-content", true)
+
+			d3.select("#mapdiv")
+			.selectAll("path")
+			.data(values[0].features)
+			.enter()
+			.append("path")
+			.attr("d", generator)
+			.style("fill", "gray")
+
+			d3.select("#mapdiv")
+			.selectAll("circle")
+			.data(values[1])
+			.enter()
+			.append("circle")
+			.attr("cx", d => projection([d["lon"], d["lat"]])[0])
+			.attr("cy", d => projection([d["lon"], d["lat"]])[1])
+			.attr("r", 2)
+			.style("fill", "yellow")
+
+			console.log("projection:", projection([74.0060, 40.7128]))
+
+
+			}
+		)
+
+        </script>
+
+	</head>
+	<body>
+	</body>
+
+</html>
+

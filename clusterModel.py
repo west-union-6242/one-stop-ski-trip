@@ -9,6 +9,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 download = False
+output = False
 delay = 1
 retry = 9
 maxcluster = 10
@@ -17,6 +18,7 @@ infile = "data/resort.csv"
 outfile = "public/resort_weather.csv"
 outfile2 = "public/resort_cluster.csv"
 
+#download weather
 if download:
     dataf = np.array([])
     with open(infile, encoding="utf-8") as resorts:
@@ -92,27 +94,28 @@ plt.title("Weather Analysis")
 plt.show()
 
 #output clusters
-is_sorted = lambda a: np.all(a[:-1] <= a[1:])
-ordered = False
-while not ordered:
-    km = KMeans(bestcluster)
-    km.fit(dataf[:,[-1,-2,-3,-4,-5,-6,-7]])
-    print(km.cluster_centers_)
-    print(km.labels_)
-    l = []
-    for i in range(km.cluster_centers_.shape[0]):
-        l.append(np.average(km.cluster_centers_[i]))
-    print(l)
-    if is_sorted(np.array(l)):
-        ordered = True
-with open(outfile2, mode="w", encoding="utf-8") as ofile:
-    csvwrite = csv.writer(ofile, delimiter=",", quotechar="\"", lineterminator="\n", quoting=csv.QUOTE_ALL)
-    for i in range(dataf.shape[0]):
-        l = dataf[i].tolist()
-        for j in range(km.cluster_centers_.shape[1]):
-            l.append(km.cluster_centers_[int(km.labels_[i]),j])
-        l.append(np.average(km.cluster_centers_[int(km.labels_[i])]))
-        l.append(km.labels_[i])
-        csvwrite.writerow(l)
+if output:
+    is_sorted = lambda a: np.all(a[:-1] <= a[1:])
+    ordered = False
+    while not ordered:
+        km = KMeans(bestcluster)
+        km.fit(dataf[:,[-1,-2,-3,-4,-5,-6,-7]])
+        print(km.cluster_centers_)
+        print(km.labels_)
+        l = []
+        for i in range(km.cluster_centers_.shape[0]):
+            l.append(np.average(km.cluster_centers_[i]))
+        print(l)
+        if is_sorted(np.array(l)):
+            ordered = True
+    with open(outfile2, mode="w", encoding="utf-8") as ofile:
+        csvwrite = csv.writer(ofile, delimiter=",", quotechar="\"", lineterminator="\n", quoting=csv.QUOTE_ALL)
+        for i in range(dataf.shape[0]):
+            l = dataf[i].tolist()
+            for j in range(km.cluster_centers_.shape[1]):
+                l.append(km.cluster_centers_[int(km.labels_[i]),j])
+            l.append(np.average(km.cluster_centers_[int(km.labels_[i])]))
+            l.append(km.labels_[i])
+            csvwrite.writerow(l)
 
 
