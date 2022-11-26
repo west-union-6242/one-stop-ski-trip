@@ -3,15 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <title>Recommendations</title>
-</head>
+
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js" integrity="sha512-wNH6xsp2n8CfB91nrBtfc4sfLwYPBMjSWVUwQOp60AYYXH6i8yCwuKFZ4rgK2i6pQek/b+bSyR7b01/922IBzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://unpkg.com/topojson@3"></script>
 
+<style>
+
+.table {
+text-align: center;
+border-collapse: collapse;
+width: 100%;
+}
+.title {
+  text-align: center;
+}
+th,td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #DDD;
+}
+tr:hover {background-color: #D6EEEE;}
+tr:nth-child(even) {
+  background-color: #D6EEEE;
+}
+
+</style>
+</head>
 
 <body>
+
 <script>
 
 
@@ -42,7 +65,7 @@
 
 
 </script>
-<h2 class='title'>You may enjoy the resorts below:</h2>
+<h2 class='title'>Based on your selections, you might enjoy the resorts below:</h2>
 <table class=table>
   <tr>
   {% for col in resorts_df.columns %}
@@ -58,6 +81,8 @@
   </tr>
   {% endfor %}
 </table>
+
+
 <br>
 
 
