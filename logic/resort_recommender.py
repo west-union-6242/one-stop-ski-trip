@@ -89,7 +89,7 @@ def resort_recommender(difficulty, goal, fav_resort, exppts, goalpts, resortpts)
   else:
     colexp = 'black_percent'
   if goal == 'goal_a':
-    goal = 'green_acres'
+    colgoal = 'green_acres'
   elif goal == 'goal_b':
     colgoal = 'runs'
   elif goal == 'goal_c':
