@@ -34,7 +34,7 @@ def calculate_similarity(resort,df):
     result = 1 - spatial.distance.cosine(dataset1, dataset2)
     #print(result)
     #df['similarity'][i] = result
-    df.loc[i, 'similarity']= result
+    df.loc[i, 'similarity']= round(result,2)
   return df
 
 def calculate_neighbors(resort,df):
