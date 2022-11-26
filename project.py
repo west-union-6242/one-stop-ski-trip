@@ -92,13 +92,13 @@ def default():
 
 @app.route('/resort-preference')
 def resort_preference():
-    conn = sqlite3.connect('westunion.db')
-    curr = conn.execute(
-        "select resort_name from resorts")
-    resort_names = curr.fetchall()
-    resort_names = list(map(lambda resort: resort[0], resort_names))
-    return render_template('resort-preference.html', resort_names=resort_names)
-
+#    conn = sqlite3.connect('westunion.db')
+#    curr = conn.execute(
+#        "select resort_name from resorts")
+#    resort_names = curr.fetchall()
+#    resort_names = list(map(lambda resort: resort[0], resort_names))
+#    return render_template('resort-preference.html', resort_names=resort_names)
+    return render_template('resort-preference.html')
 
 # @app.route('/get-resort-recommendations')
 # def get_resort_recommend():
