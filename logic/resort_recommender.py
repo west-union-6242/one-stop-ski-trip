@@ -9,6 +9,7 @@ from geopy.geocoders import Nominatim
 import math
 import requests
 import json
+import os
 
 def calculate_similarity(resort,df):
   print('User chose '+resort+'calculating similarity')
@@ -74,8 +75,9 @@ def calculate_neighbors(resort,df):
 #    return resorts_df
 def resort_recommender(difficulty, goal, fav_resort, exppts, goalpts, resortpts):
   print('User answered: ', difficulty, goal, fav_resort)
+  print(os.getcwd())
   # Get the new dataframe newdf with similarity column added
-  df = pd.read_csv ('../data/resort.csv')
+  df = pd.read_csv ('data/resort.csv')
   df.loc[:,'similarity']=0
   newdf = calculate_similarity(fav_resort,df)
   #print(newdf['similarity'])
