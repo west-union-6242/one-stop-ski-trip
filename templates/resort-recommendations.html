@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test</title>
+    <title>Recommendations</title>
 </head>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-dsv@3"></script>
@@ -44,24 +44,19 @@
 </script>
 <h2 class='title'>You may enjoy the resorts below:</h2>
 <table class=table>
-    <tr>
-        {% for col_name in resorts_df.columns %}
-        <td>{{col_name}}</td>
-        {% endfor %}
-    </tr>
-
-
-    {% for row_index in range(resorts_df.shape[0]) %}
-    <tr>
-            {% for col_name in resorts_df.columns %}
-            <td>{{resorts_df.loc[row_index][col_name]}}</td>
-            {% endfor %}
-
-        <td><a href={{url_for('get_nearby_from_resort', resort=resorts_df.loc[row_index]['Resort'] )}}> get stay recommendation </a>
-        </td>
-    </tr>
+  <tr>
+  {% for col in resorts_df.columns %}
+  <th>{{col}}</th>
+  {% endfor %}
+  </tr>
+  {% for _, row in resorts_df.iloc[:].iterrows() %}
+  <tr>
+    {% for entry in row %}
+    <td><center>{{ entry }}</center></td>
     {% endfor %}
-
+    <td><a href={{url_for('get_nearby_from_resort', resort=row['resort_name'] )}}> get stay recommendation </a>
+  </tr>
+  {% endfor %}
 </table>
 <br>
 
