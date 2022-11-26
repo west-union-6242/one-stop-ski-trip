@@ -111,7 +111,7 @@ def resort_preference():
 #     return json.dumps(resorts)
 
 
-@app.route('/resort-recommendations')
+@app.route('/resort-recommendations', methods=["GET", "POST"])
 def resort_recommendations():
     difficulty = request.args.get('difficulty')
     goal = request.args.get('goal')
@@ -120,7 +120,7 @@ def resort_recommendations():
     goalpts = request.args.get('goalpts')
     resortpts = request.args.get('resortpts')
     resorts_df = resort_recommender(difficulty, goal, fav_resort,exppts,goalpts,resortpts)
-
+    print("top 5 resorts are", resorts_df)
     return render_template('resort-recommendations.html', resorts_df=resorts_df)
 
 
