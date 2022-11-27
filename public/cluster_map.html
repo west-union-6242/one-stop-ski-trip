@@ -25,9 +25,10 @@ var margin = {top: 20, right: 20, bottom: 20, left: 20},
  width = innerWidth - padding.left - padding.right,
  height = innerHeight - padding.top - padding.bottom;
 
-		Promise.all([d3.json("us-states.json"), d3.csv("resort_cluster.csv"), 
-					d3.json("/gethotel?lat=49&lon=-115.84&limit=5"), 
-					"hello"]).then(
+		Promise.all([d3.json("us-states.json"), d3.csv("resort_cluster.csv"),
+					//d3.json("/gethotel?lat=49&lon=-115.84&limit=5"), //
+					"hello"])//
+                    .then(
 			function(values) {
 
 			var projection = d3.geoNaturalEarth()
@@ -44,7 +45,7 @@ var margin = {top: 20, right: 20, bottom: 20, left: 20},
 
 			console.log("values:", values)
 
-			d3.select("body")
+			svg=d3.select("body")
 			.append("svg")
 			.attr("width", outerWidth)
 			.attr("height", outerHeight)
@@ -69,8 +70,25 @@ var margin = {top: 20, right: 20, bottom: 20, left: 20},
 			.append("circle")
 			.attr("cx", d => projection([d["lon"], d["lat"]])[0])
 			.attr("cy", d => projection([d["lon"], d["lat"]])[1])
-			.attr("r", 2)
-			.style("fill", "yellow")
+			.attr("r", 3)
+			.style("fill", function(d){ return d.label == 0 ? "#fee5d9": d.label == 1 ?"#fcae91": d.label==2?"#fb6a4a": d.label==3? "#de2d26": "#a50f15"})
+
+			
+            //add legend
+			colors =["#feedde","#fdbe85","#fd8d3c","#e6550d","#a63603"]
+
+			console.log("colors:", colors[0])
+
+            var legend=svg.append("g")
+
+            for (var i=0; i<5; i++){
+            legend.append("circle").attr("cx",760).attr("cy",i*30+200).attr("r", 8).style("fill", colors[i])}
+
+            for (var j=0; j<5; j++){
+            legend.append("text").attr("x", 790).attr("y", j*30+200).text(j)
+             .style("font-size", "15px")
+             .attr("alignment-baseline","middle")
+             .style("fill", "black")}
 
 			console.log("projection:", projection([74.0060, 40.7128]))
 
@@ -82,7 +100,7 @@ var margin = {top: 20, right: 20, bottom: 20, left: 20},
 
 	</head>
 	<body>
+		<p style="font-family=arial;color=black;text-align=center">Cluster Map: <a href="/">Resort Lodging</a> | Weather Forecast</p>
 	</body>
 
 </html>
-
