@@ -73,6 +73,26 @@ def calculate_neighbors(resort,df):
 #    resorts_df = pd.DataFrame(resorts, columns = column_names)
 #    resorts_df.drop('index', axis=1, inplace=True)
 #    return resorts_df
+def get_weather(lat,lon):
+  if math.isnan(lat) or math.isnan(lon):
+    pass
+  else:
+    add = '/'+str(lat)+','+str(lon)
+    response_API = requests.get('https://api.weather.gov/points'+add)
+    data = response_API.text
+    parse_json = json.loads(data)
+    gridId = str(parse_json['properties']['gridId'])
+    gridX = str(parse_json['properties']['gridX'])
+    gridY = str(parse_json['properties']['gridY'])
+    add2 = gridId + '/'+gridX+','+gridY+'/forecast'
+    response_API2 = requests.get('https://api.weather.gov/gridpoints/'+add2)
+    data2 = response_API2.text
+    parse_json2 = json.loads(data2)
+    #print(parse_json2['properties'])
+    weatherdata = parse_json2['properties']['periods']
+    weathertable = pd.DataFrame.from_dict(weatherdata)
+  return weathertable[['name','temperature','temperatureUnit','windSpeed','detailedForecast']][1:2]
+
 def resort_recommender(difficulty, goal, fav_resort, exppts, goalpts, resortpts):
   print('User answered: ', difficulty, goal, fav_resort)
   print(os.getcwd())
@@ -106,4 +126,20 @@ def resort_recommender(difficulty, goal, fav_resort, exppts, goalpts, resortpts)
   #print(fdf)
   #results = fdf.iloc[: ,:16]
   results = fdf[['resort_name', 'summit','base','vertical','lifts','runs','acres','green_acres','blue_acres','black_acres','lat','lon']]
+  wf = pd.DataFrame()
+  results['12hr_temperature_F']=0
+  results['12hr_forecast_details']=0
+  #print(results)
+  for index, row in results.iterrows():
+    rlat = row['lat']
+    rlon = row['lon']
+    wf=get_weather(rlat,rlon)
+    fc = wf['detailedForecast'].values[0]
+    tf = wf['temperature'].values
+    results.loc[index,'12hr_temperature_F']=tf
+    results.loc[index,'12hr_forecast_details']=fc
+  results = results.drop(columns=['lat', 'lon'])
+  results = results.rename(columns={"summit": "summit_elevation (ft)", "vertical": "vertical_drop (ft)", "base":"base_elevation (ft)","green_acres":"green_trail_acres","blue_acres":"blue_trail_acres","black_acres":"black_trail_acres"})
+  results['lifts'] = results['lifts'].astype('int')
+  results['runs'] = results['runs'].astype('int')
   return results
