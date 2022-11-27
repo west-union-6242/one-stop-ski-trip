@@ -85,12 +85,12 @@ def get_resort_data():
 
     return json.dumps(data)
 
-@app.route("/")
+@app.route("/oldindex")
 def default():
     return send_from_directory("html", "index.html")
 
 
-@app.route('/resort-preference')
+@app.route('/')
 def resort_preference():
 #    conn = sqlite3.connect('westunion.db')
 #    curr = conn.execute(
