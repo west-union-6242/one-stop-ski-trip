@@ -6,7 +6,7 @@
 .bb {color: rgba(255, 255, 255, 1); background-color:rgba(0, 0, 0, .6);}
 .white {background-color:rgba(255, 255, 255, .3);}
 .main {
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.8);
   margin-top: 100px;
 
 }
@@ -35,7 +35,7 @@ body {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
 
 <h2><b>Please tell us a bit about yourself!</b></h2>
-<div><h5>Note: Please assign a point for how much you value each of the questions, from 1 to 10. (1 being the least important.)</h5></div>
+<div><h5>Note: Please assign a point for how much you value each of the questions, from 1 to 5. (1 being the least important.)</h5></div>
 
 <form action="/resort-recommendations" method = ["GET","POST"]>
     <div><h3><b>1. I am a(n) ___ skier.</b></h3></div>
@@ -50,7 +50,13 @@ body {
     <br>
 
     <label for="exppts">Skier level importance point*:</label>
-    <input type="text" id="exppts" name="exppts"><br>
+    <select name = "exppts">
+        <option value=1> 1 </option>
+        <option value=2> 2 </option>
+        <option value=3> 3 </option>
+        <option value=4> 4 </option>
+        <option value=5> 5 </option>
+    </select><br>
 
     <div><h3><b>2. Which one below would best describe your top goal for the trip?</b></h3></div>
     <input type = "radio" checked="checked" name = "goal" value = goal_a />
@@ -69,7 +75,13 @@ body {
     Visit as many ski resorts as I can.
     <br>
     <label for="goalpts">Goal importance point*:</label>
-    <input type="text" id="goalpts" name="goalpts"><br>
+    <select name = "goalpts">
+        <option value=1> 1 </option>
+        <option value=2> 2 </option>
+        <option value=3> 3 </option>
+        <option value=4> 4 </option>
+        <option value=5> 5 </option>
+    </select><br>
 
     <div><h3>3. Please select a resort that interests you the most:</h3></div>
     <i> This doesn't have to be somewhere you have visited, it could be one that you have heard of and wanted to go. Your selection will help us recommend the most similiar resorts.</i><br>
@@ -90,7 +102,13 @@ body {
     </select><br>
 
     <label for="resortpts">Resort importance point*:</label><br>
-    <input type="text" id="resortpts" name="resortpts"><br>
+    <select name = "resortpts">
+        <option value=1> 1 </option>
+        <option value=2> 2 </option>
+        <option value=3> 3 </option>
+        <option value=4> 4 </option>
+        <option value=5> 5 </option>
+    </select><br>
     <br>
 
 
