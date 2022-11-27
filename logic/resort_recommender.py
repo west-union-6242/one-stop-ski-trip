@@ -104,4 +104,6 @@ def resort_recommender(difficulty, goal, fav_resort, exppts, goalpts, resortpts)
   fdf = newdf.nlargest(5, 'totalpts')
   loclist = list(zip(fdf.lat, fdf.lon))
   #print(fdf)
-  return fdf
+  #results = fdf.iloc[: ,:16]
+  results = fdf[['resort_name', 'summit','base','vertical','lifts','runs','acres','green_acres','blue_acres','black_acres','lat','lon']]
+  return results
