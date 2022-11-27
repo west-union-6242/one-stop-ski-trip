@@ -161,7 +161,7 @@ def gethotel():
         headings = ["id", "address", "lat", "lon", "name", "numberOfGuests", "roomType", "stars", "url", "price"]
         db = dataproc()
         conn = db.create_connection("westunion.db")
-        curr = conn.execute("select *, ((sinlat * {}) + (coslat * {})*((sinlon * {}) + (coslon * {}))) as dist from airbnb order by dist desc limit {}".format(sinlat, coslat, sinlon, coslon, limit))
+        curr = conn.execute("select *, ((sinlat * {}) + (coslat * {})*((sinlon * {}) + (coslon * {}))) as dist from airbnb where id in (select max(id) from airbnb group by lat, lon) order by dist desc limit {}".format(sinlat, coslat, sinlon, coslon, limit))
         result = [dict((x, y) for x, y in zip(headings, row)) for row in curr.fetchall()]
         db.close()
     except Exception as e:

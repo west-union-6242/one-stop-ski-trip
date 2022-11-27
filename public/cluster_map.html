@@ -26,8 +26,10 @@ var margin = {top: 20, right: 20, bottom: 20, left: 20},
  height = innerHeight - padding.top - padding.bottom;
 
 		Promise.all([d3.json("us-states.json"), d3.csv("resort_cluster.csv"),
-					//d3.json("/gethotel?lat=49&lon=-115.84&limit=5"), //
-					"hello"])//
+					//d3.json("/gethotel?lat=49&lon=-115.84&limit=5"),
+					//d3.json("/gethotel?lat=45.39935&lon=-84.74657&limit=10"),
+					//d3.json("/gethotel?lat=40.70824&lon=-74.21371&limit=15"),
+					"hello"])
                     .then(
 			function(values) {
 
