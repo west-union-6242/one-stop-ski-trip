@@ -6,7 +6,25 @@
             #gmap {
                 height: 500px;
                 width: 960px;
+				margin-left: auto;
+				margin-right: auto;
             }
+
+			#map {
+				height: 500px;
+                width: 960px;
+				margin-left: auto;
+				margin-right: auto;
+            }
+
+			#title {
+				font-size: 2em;
+				font-weight: bold;
+				margin-left: auto;
+				margin-right: auto;
+				text-align: center;
+				width: 100%;
+			}
 		</style>
 		<script type="text/javascript" src="public/d3.v5.min.js"></script>
         <script type="text/javascript" src="public/topojson.v2.min.js"></script>
@@ -25,15 +43,17 @@
                 'green': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
             }
 
-            function addGMapMarker(pos, markerArr, color=null) {
+            function addGMapMarker(pos, markerArr, title=null, color=null) {
                 const marker = new google.maps.Marker({
                     position: pos,
-                    map: gMap
+                    map: gMap,
+					title: title
                 });
 
                 if(color && color in markerColors) {
                     marker.setIcon(markerColors[color])
                 }
+
                 markerArr.push(marker)
 
 				return marker
@@ -41,11 +61,27 @@
 
             function addAllGmapMarkers(data, markerArr, color=null) {
                 data.forEach(d => {
-                    marker = addGMapMarker(new google.maps.LatLng(d.lat, d.lon), markerArr, color)
+                    marker = addGMapMarker(new google.maps.LatLng(d.lat, d.lon), markerArr, d.name, color)
 					d['marker'] = marker
                 })
             }
 
+			function addMarkerInfoWindows(data) {
+				data.forEach(d => {
+					console.log(d)
+					info =
+						'<p><b>' + d.name + '</b></p>' +
+						'<p>' + d.address + '</p>' +
+						'<p>$' + d.price + '</p>' +
+						'<p><a href="' + d.url + '">Lodging website</a></p>';
+					var infowindow = new google.maps.InfoWindow({
+						content: info
+					});
+					google.maps.event.addListener(d['marker'], 'click', function() {
+						infowindow.open(gMap, d['marker']);
+					});
+				})
+			}
             // Deletes all markers in the array by removing references to them.
             function deleteMarkers(markerArr) {
                 for (let i = 0; i < markerArr.length; i++) {
@@ -86,7 +122,12 @@
         </script>
     </head>
     <body>
-	    <p style="font-family=arial;color=black;text-align=center"><a href="javascript:link2forecast()">Weather Forecast</a></p>
+		<div style="width: 100%;text-align: center;">
+			<text id="title">Recommended Lodgings Near {{resort}}</text>
+		</div>
+		<div style="width: 100%;text-align: center;">
+	    	<p style="font-family: arial;color: black;text-align: center"><a href="javascript:link2forecast()">Weather Forecast</a></p>
+		</div>
 		<div id="map"></div>
 		<div id="gmap"></div>
 		<script type="text/javascript">
@@ -507,6 +548,7 @@
 					var legend = d3.legendColor()
 						.labelFormat(d3.format(".2f"))
 						.useClass(false)
+						.title("Average rating in area")
 						.titleWidth(100)
 						.scale(quantize)
 						.ascending(true);
@@ -514,6 +556,7 @@
 
 					addGMapMarker(new google.maps.LatLng(recResort.lat, recResort.lon), resortMarkers, "green")
 					addAllGmapMarkers(lodgingData, lodgingMarkers)
+					addMarkerInfoWindows(lodgingData)
 					centerAndZoomGMapOnLocation(recResort.lat, recResort.lon, 14)
 
                 })
