@@ -57,6 +57,7 @@
             var resortMarkers = []
             var lodgingMarkers = []
 			var selectedMarker;
+			var selectedLodging;
             markerColors = {
                 'blue': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                 'green': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
@@ -85,19 +86,20 @@
                 })
             }
 
-			function addMarkerInfoWindows(data) {
+			function addMarkerClickEvents(data) {
 				data.forEach(d => {
-					console.log(d)
 					info =
 						'<p><b>' + d.name + '</b></p>' +
 						'<p>' + d.address + '</p>' +
 						'<p>$' + d.price + '</p>' +
+						'<p>Our rating: ' + d.weightedRanking.toFixed(2) +'</p>' +
 						'<p><a href="' + d.url + '">Lodging website</a></p>';
 					var infowindow = new google.maps.InfoWindow({
 						content: info
 					});
 					google.maps.event.addListener(d['marker'], 'click', function() {
 						infowindow.open(gMap, d['marker']);
+						lodgingClickAction(d)
 					});
 				})
 			}
@@ -134,10 +136,30 @@
 
             function link2forecast()
             {
-		const queryString = window.location.search
-		console.log(queryString)
-		location.href = "/public/cluster_map.html" + queryString
+				const queryString = window.location.search
+				location.href = "/public/cluster_map.html" + queryString
             }
+
+			function lodgingClickAction(d) {
+				if(selectedLodging != null) {
+					selectedLodging['marker'].setAnimation(null);
+					selectedLodging['marker'].setIcon(null)
+
+					d3.select("#id_" + selectedLodging.id)
+				  	  .style("fill", "green")
+				}
+
+				// Animate the map marker
+				d['marker'].setAnimation(google.maps.Animation.BOUNCE);
+				d['marker'].setIcon(markerColors['blue'])
+				selectedLodging = d
+
+				// Change the color of the lodging dot in area ranking map
+				d3.select("#id_" + d.id)
+				  .style("fill", "red")
+
+				centerAndZoomGMapOnLocation(d.lat, d.lon, 16)
+			}
         </script>
     </head>
     <body>
@@ -147,8 +169,8 @@
 		<div style="width: 100%;text-align: center;">
 	    	<p style="font-family: arial;color: black;text-align: center"><a href="javascript:link2forecast()">Weather Forecast</a></p>
 		</div>
-		<div id="map"></div>
 		<div id="gmap"></div>
+		<div id="map"></div>
 		<script type="text/javascript">
 
 			//Dimensions
@@ -184,7 +206,6 @@
 						.append("svg")
 						.attr("width", width)
 						.attr("height", height)
-						//.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
             var normalize = function(val, max, min, range=[1, 10]) {
                 delta = max - min
@@ -293,7 +314,6 @@
 							 .attr("id", "map")
 							 .attr("width", width)
 							 .attr("height", height)
-							 //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
 				var svg_legend = svg
 					.append("g")
@@ -473,35 +493,25 @@
 					   })
 
 
-					map.selectAll("circle .resort")
-                       .data(resortData)
-                       .enter()
-                       .append("circle")
-					   .attr('class', 'resort')
-                       .attr("cx", function(d) {
-                            return projection([d.lon, d.lat])[0];
-                       })
-                       .attr("cy", function(d) {
-                            return projection([d.lon, d.lat])[1];
-                       })
-                       .attr("r", 5)
-                       .style("fill", "yellow")
-                       .style("stroke", "gray")
-                       .style("stroke-width", 0.25)
-                       .style("opacity", 0.75)
-                       .on('mouseover', function(d) {
+				    map.append("path")
+					   .attr("d", d3.symbol().type(d3.symbolStar).size(500))
+					   .attr("fill", "gold")
+					   .attr("transform", "translate(" + (projection([recResort.lon, recResort.lat])[0]) + "," + projection([recResort.lon, recResort.lat])[1] + ")")
+					   .on('mouseover', function(d) {
                             d3.select(this).style('stroke-width', 1)
                                            .style('stroke', 'black')
                        })
                        .on('mouseout', function(d) {
-                            d3.select(this).style('stroke-width', 0.25)
-                                           .style('stroke', 'gray')
+                            d3.select(this).style('stroke', 'None')
                        })
-                       .append("title")			//Simple tooltip
+					   .on('click', function(d) {
+							centerAndZoomGMapOnLocation(recResort.lat, recResort.lon, 14)
+					   })
+					   .append("title")			//Simple tooltip
                        .text(function(d) {
-                            return d.resort_name;
+                            return recResort.resort_name;
                        });
-					
+
 					var tip = d3.tip()
 						.attr("class", 'd3-tip')
 						.attr("id", "tooltip")
@@ -528,6 +538,9 @@
                        .enter()
                        .append("circle")
                        .attr('class', 'hotel')
+					   .attr('id', function(d) {
+							return "id_" + d.id
+					   })
                        .attr("cx", function(d) {
                             return projection([d.lon, d.lat])[0];
                        })
@@ -552,14 +565,7 @@
 							tip.hide()
                        })
 					   .on('click', function(d) {
-							centerAndZoomGMapOnLocation(d.lat, d.lon, 16)
-							if(selectedMarker != null) {
-								selectedMarker.setAnimation(null);
-								selectedMarker.setIcon(null)
-							}
-							d['marker'].setAnimation(google.maps.Animation.BOUNCE);
-							d['marker'].setIcon(markerColors['blue'])
-							selectedMarker = d['marker']
+							lodgingClickAction(d)
 					   })
 					
 					map.call(tip)
@@ -575,7 +581,7 @@
 
 					addGMapMarker(new google.maps.LatLng(recResort.lat, recResort.lon), resortMarkers, "green")
 					addAllGmapMarkers(lodgingData, lodgingMarkers)
-					addMarkerInfoWindows(lodgingData)
+					addMarkerClickEvents(lodgingData)
 					centerAndZoomGMapOnLocation(recResort.lat, recResort.lon, 14)
 
                 })

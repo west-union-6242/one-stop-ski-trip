@@ -51,24 +51,6 @@ app = Flask(__name__)
 def send_public(path):
     return send_from_directory('public', path)
 
-# This is mock data, need the real resort ranking data
-@app.route('/get-resort-ranking-data')
-def get_resort_ranking_data():
-    data = []
-
-    with open("data/resort.csv", encoding='utf-8') as csvf:
-        csvReader = csv.DictReader(csvf)
-
-        # Convert each row into a dictionary
-        # and add it to data
-        for row in csvReader:
-            # Sample recommendation data
-            row['recommendation_level'] = random.randrange(10) + 1
-            data.append(row)
-
-    # Return 5 random resorts, only rankings above 8
-    return json.dumps(random.sample([d for d in data if d['recommendation_level'] > 8], 5))
-
 # Get data for specified resort
 @app.route('/get-resort-data')
 def get_resort_data():
