@@ -65,7 +65,7 @@ def get_weather(lat,lon):
     pass
   else:
     weatherdata = None
-    trynummax = 20
+    trynummax = 40
     trynum=0
     while trynum <= trynummax:
         try:
@@ -121,20 +121,20 @@ def resort_recommender(difficulty, goal, fav_resort, exppts, goalpts, resortpts)
   fdf = newdf.nlargest(5, 'totalpts')
   #loclist = list(zip(fdf.lat, fdf.lon))
   results = fdf[['resort_name', 'summit','base','vertical','lifts','runs','acres','green_acres','blue_acres','black_acres','lat','lon']]
-  wf = pd.DataFrame()
-  results['12hr_temperature (F)']=0
-  results['12hr_forecast (details)']=0
+  #wf = pd.DataFrame()
+  #results['12hr_temperature (F)']=0
+  #results['12hr_forecast (details)']=0
   #print(results)
-  for index, row in results.iterrows():
-    rlat = row['lat']
-    rlon = row['lon']
-    wf=get_weather(rlat,rlon)
-    fc = wf['detailedForecast'].values[0]
-    tf = wf['temperature'].values
-    results.loc[index,'12hr_temperature (F)']=tf
-    results.loc[index,'12hr_forecast (details)']=fc
+  #for index, row in results.iterrows():
+    #rlat = row['lat']
+    #rlon = row['lon']
+    #wf=get_weather(rlat,rlon)
+    #fc = wf['detailedForecast'].values[0]
+    #tf = wf['temperature'].values
+    #results.loc[index,'12hr_temperature (F)']=tf
+    #results.loc[index,'12hr_forecast (details)']=fc
   results = results.drop(columns=['lat', 'lon'])
-  results = results.rename(columns={"summit": "summit_elevation (ft)", "vertical": "vertical_drop (ft)", "base":"base_elevation (ft)","green_acres":"green_trail (acres)","blue_acres":"blue_trail (acres)","black_acres":"black_trail (acres)"})
-  results['lifts'] = results['lifts'].astype('int')
-  results['runs'] = results['runs'].astype('int')
+  results = results.rename(columns={"resort_name":"Resort","acres":"Acres","runs":"Number of Runs","lifts":"Number of Lifts","summit": "Summit Elevation (ft)", "vertical": "Vertical Drop (ft)", "base":"Base Elevation (ft)","green_acres":"Green Trails (acres)","blue_acres":"Blue Trails (acres)","black_acres":"Black Trails (acres)"})
+  results['Number of Lifts'] = results['Number of Lifts'].astype('int')
+  results['Number of Runs'] = results['Number of Runs'].astype('int')
   return results
