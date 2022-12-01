@@ -47,6 +47,12 @@ var margin = {top: 20, right: 20, bottom: 20, left: 20},
 
 			console.log("values:", values)
 
+			var unique = d3.set(values[1], function(d,i) {return d['avg']}).values().sort(d3.ascending)
+			for (var i=0; i<5; i++){
+				unique[i]=d3.format(".2f")(unique[i])}
+			console.log("avg:", unique)
+
+
 			svg=d3.select("body")
 			.append("svg")
 			.attr("width", outerWidth)
@@ -130,7 +136,7 @@ var margin = {top: 20, right: 20, bottom: 20, left: 20},
             legend.append("circle").attr("cx",760).attr("cy",i*30+200).attr("r", 8).style("fill", colors[i])}
 
             for (var j=0; j<5; j++){
-            legend.append("text").attr("x", 790).attr("y", j*30+200).text(j)
+            legend.append("text").attr("x", 790).attr("y", j*30+200).text("Avg Temp: " + unique[j]+ " °F")
              .style("font-size", "15px")
              .attr("alignment-baseline","middle")
              .style("fill", "black")}
