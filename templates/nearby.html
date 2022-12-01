@@ -512,6 +512,21 @@
                             return recResort.resort_name;
                        });
 
+					map.append("text")
+					   .attr("id", "resort_text")
+					   .attr('x', function(d) {
+							return projection([
+								recResort.lon,
+								recResort.lat])[0] + 5})
+					   .attr('y', function(d) {
+							return projection([
+								recResort.lon,
+								recResort.lat])[1] - 10})
+                       .text(function() {
+                            return recResort.resort_name;
+                       })
+					   .style("font-size", 10)
+
 					var tip = d3.tip()
 						.attr("class", 'd3-tip')
 						.attr("id", "tooltip")
@@ -579,7 +594,7 @@
 						.ascending(true);
 					svg_legend.call(legend)
 
-					addGMapMarker(new google.maps.LatLng(recResort.lat, recResort.lon), resortMarkers, "green")
+					addGMapMarker(new google.maps.LatLng(recResort.lat, recResort.lon), resortMarkers, recResort.resort_name, "green")
 					addAllGmapMarkers(lodgingData, lodgingMarkers)
 					addMarkerClickEvents(lodgingData)
 					centerAndZoomGMapOnLocation(recResort.lat, recResort.lon, 14)
