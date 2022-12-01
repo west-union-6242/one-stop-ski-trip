@@ -13,7 +13,7 @@
 <style>
 
 .table {
-text-align: left;
+text-align: center;
 border-collapse: collapse;
 width: 100%;
 }
@@ -22,7 +22,7 @@ width: 100%;
 }
 th,td {
   padding: 8px;
-  text-align: left;
+  text-align: center;
   border-bottom: 2px solid #808080;
 }
 tr:hover {background-color: #D6EEEE;}
@@ -56,34 +56,8 @@ body {
 <script>
 
 
-    // const url = 'get-resort-recommendations';
-    //
-    // fetchAndProcessData(url, function(data){
-    //     console.log("=======Start Visualizing code here===========")
-    // })
-    //
-    //
-    // function fetchAndProcessData(endpoint, callback) {
-    //     var xhr = new XMLHttpRequest();
-    //
-    //     xhr.onreadystatechange = function () {
-    //         if (this.readyState != 4) return;
-    //
-    //         if (this.status == 200) {
-    //             var data = JSON.parse(this.responseText);
-    //             console.log(data)
-    //
-    //             callback(data)
-    //         }
-    //     };
-    //
-    //     xhr.open('GET', endpoint, true);
-    //     xhr.send();
-    // }
-
-
 </script>
-<h2 class='title'>Based on your selections, you might enjoy the resorts below:</h2>
+<h2 class='title'>Based on your answers, you might enjoy these 5 resorts:</h2>
 <table class=table>
   <tr>
   {% for col in resorts_df.columns %}
@@ -95,7 +69,7 @@ body {
     {% for entry in row %}
     <td><center>{{ entry }}</center></td>
     {% endfor %}
-    <td><a href={{url_for('get_nearby_from_resort', resort=row['resort_name'] )}}> get stay recommendation </a>
+    <td><a href={{url_for('get_nearby_from_resort', resort=row['Resort'] )}}> get stay recommendation </a>
   </tr>
   {% endfor %}
 </table>
