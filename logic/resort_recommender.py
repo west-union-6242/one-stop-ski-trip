@@ -100,11 +100,11 @@ def resort_recommender(difficulty, goal, fav_resort, exppts, goalpts, resortpts)
   #print(newdf['similarity'])
   # Rank newdf based on experience_level, goal and resort inputs
   if difficulty == 'beginner':
-    colexp = 'green_percent'
+    colexp = 'green_acres'
   elif difficulty == 'intermediate':
-    colexp = 'blue_percent'
+    colexp = 'blue_acres'
   else:
-    colexp = 'black_percent'
+    colexp = 'black_acres'
   if goal == 'goal_a':
     colgoal = 'green_acres'
   elif goal == 'goal_b':
