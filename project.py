@@ -156,6 +156,8 @@ def getstatesgeo():
     data = json.load(file)
     return json.dumps(data)
 
+#IMPORTANT: do not visit /reload website unless you want to re-import the 100,000+ airbnb records over again which takes about an hour
+#           always follow instruction to install database by unzip westunion.zip and placing westunion.db to project root before starting the http server
 @app.route("/reload")
 def reload():
     try:
