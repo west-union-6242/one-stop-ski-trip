@@ -88,6 +88,11 @@ var margin = {top: 20, right: 20, bottom: 20, left: 20},
 				{
 					querystr = querystr.substring(8)
 					querystr = querystr.replaceAll("+", " ")
+					querystr = querystr.replace(/\%2C/gi, ",")
+					querystr = querystr.replace(/\%20/gi, " ")
+					querystr = querystr.replace(/\%28/gi, "(")
+					querystr = querystr.replace(/\%29/gi, ")")
+					//console.log("querystr:", querystr)
 					return querystr
 				}
 				return ""
